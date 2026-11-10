@@ -31,12 +31,12 @@ export function RouteComparison({ routes, recommendedId }: RouteComparisonProps)
 
   return (
     <section aria-label="How the routes compare" className="space-y-2">
-      <h3 className="text-lg font-medium">How the routes compare</h3>
+      <h3 className="text-xl font-extrabold">How the routes compare</h3>
       <div role="table" aria-label="Route criteria, in order of priority" className="text-base">
         <div role="row" className="grid items-end gap-1 border-b pb-1.5 font-medium text-muted-foreground" style={{ gridTemplateColumns: columns }}>
           <span role="columnheader">Checked in order</span>
           {routes.map((r) => (
-            <span key={r.id} role="columnheader" className={cn('text-right', r.id === recommendedId && 'text-primary')}>
+            <span key={r.id} role="columnheader" className={cn('text-right', r.id === recommendedId && 'font-extrabold text-foreground')}>
               {r.label.replace('Route ', 'R')}
             </span>
           ))}
@@ -52,7 +52,7 @@ export function RouteComparison({ routes, recommendedId }: RouteComparisonProps)
                 <span
                   key={r.id}
                   role="cell"
-                  className={cn('flex items-center justify-end gap-1 rounded-md px-1 py-0.5', best ? 'bg-primary/10 font-medium text-primary' : 'text-muted-foreground')}
+                  className={cn('flex items-center justify-end gap-1 rounded-md px-1.5 py-0.5', best ? 'bg-foreground font-bold text-background' : 'text-muted-foreground')}
                 >
                   {best && <Check className="size-4 shrink-0" aria-label="best" />}
                   {format(row, row.values[r.id])}

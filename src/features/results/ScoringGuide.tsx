@@ -7,7 +7,7 @@ export function ScoringGuide({ loadLb }: { loadLb?: number }) {
   return (
     <div className="space-y-6">
       <section className="space-y-2">
-        <h3 className="text-lg font-medium">What the levels mean</h3>
+        <h3 className="text-xl font-extrabold">What the levels mean</h3>
         <div role="table" aria-label="Risk thresholds" className="text-base">
           <div role="row" className="grid grid-cols-[6.5rem_1fr_1fr_1fr] gap-2 border-b pb-1.5 font-medium text-muted-foreground">
             <span role="columnheader">Level</span>
@@ -30,7 +30,7 @@ export function ScoringGuide({ loadLb }: { loadLb?: number }) {
       </section>
 
       <section className="space-y-2">
-        <h3 className="text-lg font-medium">{loadLb != null ? `Your load: ${loadLb.toLocaleString('en-US')} lb` : 'Heavy loads'}</h3>
+        <h3 className="text-xl font-extrabold">{loadLb != null ? `Your load: ${loadLb.toLocaleString('en-US')} lb` : 'Heavy loads'}</h3>
         <ul className="list-disc space-y-1 pl-5 text-base">
           {(loadLb != null
             ? loadRuleLines(loadLb)
@@ -42,7 +42,7 @@ export function ScoringGuide({ loadLb }: { loadLb?: number }) {
       </section>
 
       <section className="space-y-2">
-        <h3 className="text-lg font-medium">How a route is recommended</h3>
+        <h3 className="text-xl font-extrabold">How a route is recommended</h3>
         <ol className="list-decimal space-y-1 pl-5 text-base">
           {RECOMMENDATION_STEPS.map((step) => (
             <li key={step}>{step}</li>

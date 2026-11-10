@@ -78,7 +78,7 @@ export function PlaceInput({ label, icon, value, onChange, placeholder, recent, 
         onBlur={(e) => {
           if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false)
         }}
-        className="relative rounded-xl focus-within:bg-primary/5 focus-within:ring-2 focus-within:ring-ring/60"
+        className="relative rounded-md focus-within:bg-muted focus-within:ring-2 focus-within:ring-ring"
       >
         <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2">{icon}</span>
         <CommandPrimitive.Input
@@ -93,7 +93,7 @@ export function PlaceInput({ label, icon, value, onChange, placeholder, recent, 
           placeholder={placeholder}
           autoComplete="off"
           aria-invalid={showUnpicked || undefined}
-          className={cn('h-14 w-full rounded-xl bg-transparent pr-12 pl-12 text-lg outline-none placeholder:text-muted-foreground', showUnpicked && 'text-destructive')}
+          className={cn('h-14 w-full rounded-md bg-transparent pr-12 pl-12 text-lg font-semibold outline-none placeholder:font-normal placeholder:text-muted-foreground', showUnpicked && 'text-destructive')}
         />
         {text && (
           <button
@@ -104,7 +104,7 @@ export function PlaceInput({ label, icon, value, onChange, placeholder, recent, 
               onChange(null)
               setOpen(true)
             }}
-            className="absolute top-1/2 right-1.5 flex size-11 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
+            className="absolute top-1/2 right-1.5 flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
           >
             <X className="size-4" />
           </button>
@@ -113,7 +113,7 @@ export function PlaceInput({ label, icon, value, onChange, placeholder, recent, 
         {open && (
           <CommandList
             onMouseDown={(e) => e.preventDefault()}
-            className="absolute z-40 mt-1 max-h-72 w-full rounded-xl bg-popover p-1 shadow-[0_4px_16px_rgba(0,0,0,0.25)]"
+            className="absolute z-40 mt-1 max-h-72 w-full rounded-lg border-2 border-foreground bg-popover p-1"
           >
             {!typing && allowCurrentLocation && (
               <CommandGroup>

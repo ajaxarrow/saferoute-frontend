@@ -1,15 +1,16 @@
 import { CloudRain, Eye, EyeOff, Flag, Info, Moon, Pause, Play, Snowflake, Sun, Truck, Wind, type LucideIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { PlannedRoute } from '@/api/types'
+import { RouteLine } from '@/components/RouteLine'
+import { Roundel } from '@/components/Roundel'
 import { RiskBadge } from '@/features/results/RiskBadge'
 import { Slider } from '@/components/ui/slider'
-import { formatEta, formatMiles } from '@/lib/format'
+import { formatEta } from '@/lib/format'
 import { routeShortName } from '@/lib/hazards'
 import type { TruckState } from '@/lib/journey'
 import { RISK } from '@/lib/risk'
 import { describeWeather, isNight, type WeatherKind } from '@/lib/weather'
 import { cn } from '@/lib/utils'
-import { riskRanges } from './routeLayers'
 
 const STEP_MS = 400
 
@@ -57,14 +58,14 @@ export function TripWeatherCard({ route, truck, hour, maxHour, onHourChange, vis
   const WeatherIcon = weather.kind === 'clear' && isNight(truck.timeIso, c.tz) ? Moon : ICON[weather.kind]
   const risk = RISK[c.risk]
   const total = route.summary.total_miles || 1
-  const segments = riskRanges(route)
   const roads = routeShortName(route.via)
 
   return (
-    <section aria-label={`Weather along ${route.label}`} className="w-full space-y-3 rounded-2xl bg-card p-3.5 shadow-[0_2px_12px_rgba(0,0,0,0.28)]">
+    <section aria-label={`Weather along ${route.label}`} className="w-full space-y-2.5 rounded-lg border-2 border-foreground bg-card p-3.5 shadow-[0_4px_0_0_rgba(0,0,0,0.12)]">
       <div className="flex items-center justify-between gap-3">
         <p key={route.id} className="flex min-w-0 items-center gap-2 text-base font-medium duration-200 animate-in fade-in motion-reduce:animate-none">
-          <span className="rounded-full bg-primary px-2.5 py-0.5 text-sm text-primary-foreground">{route.label}</span>
+          <Roundel n={route.label.replace(/\D+/g, '') || '1'} size="sm" />
+          <span className="font-extrabold">{route.label}</span>
           {roads && <span className="truncate text-muted-foreground">{roads}</span>}
         </p>
         <button
@@ -72,7 +73,7 @@ export function TripWeatherCard({ route, truck, hour, maxHour, onHourChange, vis
           aria-pressed={visible}
           aria-label={visible ? 'Hide weather heatmap' : 'Show weather heatmap'}
           onClick={() => onVisibleChange(!visible)}
-          className="-my-1 flex size-11 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
+          className="-my-1 flex size-11 shrink-0 items-center justify-center rounded-md border-2 border-input/60 hover:bg-muted"
         >
           {visible ? <Eye className="size-5" /> : <EyeOff className="size-5" />}
         </button>
@@ -80,13 +81,13 @@ export function TripWeatherCard({ route, truck, hour, maxHour, onHourChange, vis
 
       <div className="flex items-center gap-3" aria-live="polite">
         <span
-          className="flex size-14 shrink-0 items-center justify-center rounded-full transition-colors duration-200"
-          style={{ backgroundColor: `color-mix(in srgb, ${risk.color} 18%, transparent)`, color: c.risk === 'LOW' ? 'var(--foreground)' : risk.color }}
+          className="flex size-12 shrink-0 items-center justify-center rounded-lg transition-colors duration-200 sm:size-14"
+          style={{ backgroundColor: risk.color, color: risk.onColor }}
         >
-          <WeatherIcon className="size-8" aria-hidden />
+          <WeatherIcon className="size-7 sm:size-8" aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-2 text-xl leading-tight font-medium">
+          <p className="flex items-center gap-2 text-2xl leading-tight font-extrabold">
             {truck.arrived ? (
               <>
                 <Flag className="size-5 shrink-0" aria-hidden /> Arrived
@@ -108,33 +109,14 @@ export function TripWeatherCard({ route, truck, hour, maxHour, onHourChange, vis
         <Stat icon={Snowflake} label="Snow" value={`${c.snow_in_hr} in/hr`} active={c.snow_in_hr >= 0.05} />
       </ul>
 
-      <div className="pt-4">
-        <div
-          role="img"
-          aria-label={`${route.label}, ${formatMiles(total)}. Truck is ${Math.round(truck.progress * 100)} percent along.`}
-          className="relative"
-        >
-          <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-muted">
-            {segments.map((s, i) => (
-              <span key={i} style={{ width: `${((s.to - s.from) / total) * 100}%`, backgroundColor: RISK[s.risk].color }} />
-            ))}
-          </div>
-          <span
-            aria-hidden
-            className="absolute -top-[1.35rem] flex size-8 -translate-x-1/2 items-center justify-center rounded-full bg-card text-primary shadow-[0_1px_4px_rgba(0,0,0,0.35)] ring-2 ring-primary transition-[left] duration-300 ease-out motion-reduce:transition-none"
-            style={{ left: `${Math.min(Math.max(truck.progress, 0.02), 0.98) * 100}%` }}
-          >
-            <Truck className="size-4" />
-          </span>
-        </div>
-      </div>
+      <RouteLine route={route} truckProgress={truck.progress} className="mt-3" />
 
       <div className="flex items-center gap-3">
         <button
           type="button"
           aria-label={playing ? 'Pause forecast animation' : 'Play forecast animation'}
           onClick={() => onPlayingChange(!playing)}
-          className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground hover:opacity-90"
+          className="flex size-12 shrink-0 items-center justify-center rounded-md bg-foreground text-background hover:opacity-90"
         >
           {playing ? <Pause className="size-5" /> : <Play className="size-5" />}
         </button>
@@ -147,17 +129,17 @@ export function TripWeatherCard({ route, truck, hour, maxHour, onHourChange, vis
           onValueChange={(v) => onHourChange(Array.isArray(v) ? v[0] : v)}
           className="px-1"
         />
-        <span className="w-12 shrink-0 text-right text-base font-medium tabular">{hour === 0 ? 'Start' : `+${hour}h`}</span>
+        <span className="w-12 shrink-0 text-right text-base font-bold tabular">{hour === 0 ? 'Start' : `+${hour}h`}</span>
       </div>
 
-      <p className="-mt-1 text-sm text-muted-foreground">Drag or press play to see the weather 0–48 h after departure.</p>
+      <p className="-mt-1 hidden text-sm text-muted-foreground sm:block">Drag or press play to see the weather 0–48 h after departure.</p>
 
       <div>
         <button
           type="button"
           aria-expanded={legendOpen}
           onClick={() => setLegendOpen((o) => !o)}
-          className="flex min-h-11 items-center gap-1.5 text-base font-medium text-primary sm:hidden"
+          className="-mt-1 flex min-h-11 items-center gap-1.5 text-base font-bold sm:hidden"
         >
           <Info className="size-4" aria-hidden /> {legendOpen ? 'Hide legend' : 'Legend'}
         </button>

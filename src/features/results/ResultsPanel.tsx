@@ -27,8 +27,8 @@ export function ResultsPanel({ plan, selectedRouteId, loadLb, onSelectRoute, onS
       ))}
 
       <section aria-label="Compare routes" className="space-y-2">
-        <h3 className="text-lg font-medium">Routes</h3>
-        <div role="radiogroup" aria-label="Route options" className="-mx-3 space-y-1">
+        <h3 className="text-xl font-extrabold">Routes</h3>
+        <div role="radiogroup" aria-label="Route options" className="space-y-2.5">
           {plan.routes.map((route) => (
             <RouteCard key={route.id} route={route} selected={route.id === selected.id} onSelect={() => onSelectRoute(route.id)} />
           ))}

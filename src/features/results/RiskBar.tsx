@@ -11,7 +11,7 @@ export function RiskBar({ milesByLevel }: RiskBarProps) {
   const total = present.reduce((sum, l) => sum + milesByLevel[l], 0) || 1
   const description = `Risk along route: ${present.map((l) => `${RISK[l].label} ${formatMiles(milesByLevel[l])}`).join(', ')}`
   return (
-    <div role="img" aria-label={description} className="flex h-1.5 w-full overflow-hidden rounded-full bg-muted">
+    <div role="img" aria-label={description} className="flex h-2.5 w-full overflow-hidden rounded-full bg-muted">
       {present.map((l) => (
         <div key={l} style={{ width: `${(milesByLevel[l] / total) * 100}%`, backgroundColor: RISK[l].color }} />
       ))}

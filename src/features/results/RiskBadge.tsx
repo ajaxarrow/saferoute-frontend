@@ -7,16 +7,12 @@ interface RiskBadgeProps {
   className?: string
 }
 
-/** Colour + icon + label, so risk never depends on colour alone. */
+/** A small enamel plate: risk ink + icon + label, so risk never depends on colour alone. */
 export function RiskBadge({ level, size = 'md', className }: RiskBadgeProps) {
   const { label, color, onColor, icon: Icon } = RISK[level]
   return (
     <span
-      className={cn(
-        'inline-flex items-center gap-1 rounded-full font-medium whitespace-nowrap',
-        size === 'sm' ? 'px-2 py-0.5 text-sm' : 'px-3 py-1 text-base',
-        className,
-      )}
+      className={cn('inline-flex items-center gap-1 rounded-md font-bold whitespace-nowrap', size === 'sm' ? 'px-1.5 py-0.5 text-sm' : 'px-2.5 py-1 text-base', className)}
       style={{ backgroundColor: color, color: onColor }}
     >
       <Icon className={size === 'sm' ? 'size-4' : 'size-5'} aria-hidden />

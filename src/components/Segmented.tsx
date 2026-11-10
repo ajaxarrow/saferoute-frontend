@@ -31,8 +31,8 @@ export function Segmented<T extends string | number>({ options, value, onChange,
             aria-label={option.name}
             onClick={() => onChange(option.value)}
             className={cn(
-              'min-h-11 flex-1 rounded-full border px-4 text-base font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
-              checked ? 'border-primary bg-primary/10 text-primary' : 'border-border text-foreground hover:bg-muted',
+              'min-h-12 flex-1 rounded-md border-2 px-3 text-base font-bold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+              checked ? 'border-foreground bg-foreground text-background' : 'border-input/60 text-foreground hover:bg-muted',
             )}
           >
             {option.label}

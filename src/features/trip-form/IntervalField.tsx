@@ -19,7 +19,7 @@ interface IntervalFieldProps {
 export function IntervalField({ value, onChange }: IntervalFieldProps) {
   const [open, setOpen] = useState(false)
   return (
-    <div className="rounded-xl border">
+    <div className="rounded-md border-2 border-input">
       <button
         type="button"
         aria-expanded={open}
@@ -27,13 +27,13 @@ export function IntervalField({ value, onChange }: IntervalFieldProps) {
         className="flex min-h-14 w-full items-center justify-between gap-3 px-3 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       >
         <span>
-          <span className="block text-base font-medium">Weather checks</span>
+          <span className="block text-lg font-bold">Weather checks</span>
           <span className="block text-base text-muted-foreground">Every {value} mi along the route</span>
         </span>
         <ChevronDown className={cn('size-6 shrink-0 transition-transform', open && 'rotate-180')} aria-hidden />
       </button>
       {open && (
-        <div className="space-y-2 border-t p-3">
+        <div className="space-y-2 border-t-2 p-3">
           <Segmented options={OPTIONS} value={value} onChange={onChange} label="Weather check distance" />
           <p className="text-base text-muted-foreground">Smaller = more detail, a little slower.</p>
         </div>

@@ -44,7 +44,7 @@ describe('TripWeatherCard', () => {
 
   it('shows the route progress strip with the truck on it', () => {
     setup(0, 4)
-    expect(screen.getByRole('img', { name: /Route 1, .* mi\. Truck is \d+ percent along\./ })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: /Route 1, .* mi.*Truck is \d+ percent along\./ })).toBeInTheDocument()
   })
 
   it('reports arrival once the truck is at the destination', () => {

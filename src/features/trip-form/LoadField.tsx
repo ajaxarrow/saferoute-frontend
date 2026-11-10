@@ -28,7 +28,7 @@ interface LoadFieldProps {
 export function LoadField({ value, onChange }: LoadFieldProps) {
   return (
     <div className="space-y-2">
-      <Label htmlFor="load-weight" className="text-base font-medium text-muted-foreground">
+      <Label htmlFor="load-weight" className="text-lg font-bold">
         Load weight
       </Label>
       <div className="relative">
@@ -42,7 +42,7 @@ export function LoadField({ value, onChange }: LoadFieldProps) {
             const digits = e.target.value.replace(/\D/g, '')
             onChange(digits === '' ? null : Math.min(parseInt(digits, 10), MAX_LOAD_LB))
           }}
-          className="h-14 w-full rounded-xl bg-muted pr-12 pl-11 text-xl font-medium tabular outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="h-14 w-full rounded-md border-2 border-input bg-card pr-12 pl-11 text-xl font-bold tabular outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
         />
         <span className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-base text-muted-foreground">lb</span>
       </div>

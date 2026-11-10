@@ -65,7 +65,7 @@ export function BottomSheet({ snap, onSnapChange, peek, resetScrollKey, children
   return (
     <div
       ref={sheet}
-      className="fixed inset-x-0 bottom-0 z-20 flex flex-col rounded-t-2xl bg-background shadow-[0_-4px_24px_rgba(0,0,0,0.2)]"
+      className="fixed inset-x-0 bottom-0 z-20 flex flex-col rounded-t-xl border-t-4 border-foreground bg-background"
       style={{ height, transition: dragHeight == null ? 'height 300ms cubic-bezier(0.22, 1, 0.36, 1)' : 'none' }}
     >
       <button
@@ -77,7 +77,7 @@ export function BottomSheet({ snap, onSnapChange, peek, resetScrollKey, children
         onPointerCancel={onPointerUp}
         className="flex h-11 w-full shrink-0 touch-none items-center justify-center"
       >
-        <span className="h-1 w-10 rounded-full bg-foreground/30" />
+        <span className="h-1.5 w-12 rounded-full bg-foreground/40" />
       </button>
       {showPeek && <div className="px-4 pb-4">{peek}</div>}
       {/* Kept mounted while peeking so the form keeps what the driver typed. */}

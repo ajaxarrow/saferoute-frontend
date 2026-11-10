@@ -9,7 +9,7 @@ export function RiskBreakdown({ route }: { route: PlannedRoute }) {
   const levels = RISK_ORDER.filter((l) => miles[l] > 0)
   return (
     <section aria-label={`Risk along ${route.label}`} className="space-y-3">
-      <h3 className="text-lg font-medium">Miles by risk</h3>
+      <h3 className="text-xl font-extrabold">Miles by risk</h3>
       <ul className="space-y-2.5">
         {levels.map((level) => (
           <li key={level} className="grid grid-cols-[6.5rem_1fr_auto] items-center gap-3">

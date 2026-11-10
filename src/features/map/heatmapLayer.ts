@@ -22,6 +22,9 @@ const cellColorFor = (hour: number): ExpressionSpecification => [
   CLEAR,
 ]
 
+// Calm weather is drawn too (a clear green band); elevated risk is much heavier so trouble jumps out.
+const cellOpacityFor = (hour: number): ExpressionSpecification => ['match', ['get', hourProperty(hour)], 0, 0.55, 0.9]
+
 /** Adds the heatmap (a soft risk-coloured band along the trip corridor) below `beforeId` so route lines stay on top. Safe to call after each style load. */
 export function addHeatmapLayers(map: MapLibreMap, beforeId: string): void {
   if (!map.getSource(HEAT.source)) map.addSource(HEAT.source, { type: 'geojson', data: EMPTY })
@@ -34,15 +37,15 @@ export function addHeatmapLayers(map: MapLibreMap, beforeId: string): void {
       source: HEAT.source,
       paint: {
         'heatmap-weight': weightFor(0),
-        'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 3, 0.9, 9, 1.6],
-        'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 3, 18, 6, 38, 9, 80],
+        'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 3, 1.6, 9, 2.4],
+        'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 3, 30, 6, 60, 9, 110],
         'heatmap-color': [
           'interpolate', ['linear'], ['heatmap-density'],
           0, CLEAR,
-          0.1, 'rgba(234,179,8,0.35)',
-          0.35, 'rgba(249,115,22,0.55)',
-          0.6, 'rgba(220,38,38,0.65)',
-          0.85, 'rgba(126,34,206,0.75)',
+          0.1, 'rgba(251,188,4,0.7)',
+          0.35, 'rgba(250,123,23,0.85)',
+          0.6, 'rgba(217,48,37,0.92)',
+          0.85, 'rgba(132,48,206,0.95)',
         ],
         'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 7, 0.95, 9.5, 0],
       },
@@ -58,9 +61,9 @@ export function addHeatmapLayers(map: MapLibreMap, beforeId: string): void {
       source: HEAT.source,
       paint: {
         'circle-color': cellColorFor(0),
-        'circle-radius': ['interpolate', ['exponential', 2], ['zoom'], 3, 7, 5, 13, 8, 40, 11, 150],
-        'circle-blur': 0.85,
-        'circle-opacity': 0.5,
+        'circle-radius': ['interpolate', ['exponential', 2], ['zoom'], 3, 14, 5, 26, 8, 62, 11, 190],
+        'circle-blur': 0.55,
+        'circle-opacity': cellOpacityFor(0),
       },
     },
     beforeId,
@@ -76,6 +79,7 @@ export function setHeatmapHour(map: MapLibreMap, hour: number): void {
   if (!map.getLayer(HEAT.glow) || !map.getLayer(HEAT.cells)) return
   map.setPaintProperty(HEAT.glow, 'heatmap-weight', weightFor(hour))
   map.setPaintProperty(HEAT.cells, 'circle-color', cellColorFor(hour))
+  map.setPaintProperty(HEAT.cells, 'circle-opacity', cellOpacityFor(hour))
 }
 
 /** Shows only the selected route's weather. Older responses without route membership show everything. */

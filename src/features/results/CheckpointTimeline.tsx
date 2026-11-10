@@ -34,7 +34,7 @@ export function CheckpointTimeline({ route, onSelectCheckpoint }: CheckpointTime
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-lg font-medium">Stops on {route.label}</h3>
+        <h3 className="text-xl font-extrabold">Stops on {route.label}</h3>
         {anyRisky && (
           <Segmented
             label="Which checkpoints to list"
@@ -56,31 +56,33 @@ export function CheckpointTimeline({ route, onSelectCheckpoint }: CheckpointTime
           <p className="text-base">
             All {route.checkpoints.length} stops are Low. Strongest wind {maxWind} mph.
           </p>
-          <button type="button" onClick={() => setExpanded(true)} className="min-h-12 rounded-full border px-5 text-base font-medium text-primary hover:bg-primary/10">
+          <button type="button" onClick={() => setExpanded(true)} className="min-h-12 rounded-md border-2 border-foreground px-5 text-base font-bold hover:bg-muted">
             Show all {route.checkpoints.length} stops
           </button>
         </div>
       ) : (
-        <ol className="-mx-3">
-          {rows.map((c) => (
-            <li key={c.index}>
+        <ol>
+          {rows.map((c, i) => (
+            <li key={c.index} className="relative pl-9">
+              {/* the line: inked in this stop's risk, running down to the next stop */}
+              {i < rows.length - 1 && <span aria-hidden className="absolute top-5 bottom-[-0.25rem] left-[0.6rem] w-1.5 rounded-full" style={{ backgroundColor: RISK[c.risk].color }} />}
+              <span aria-hidden className="absolute top-3 left-0 size-6 rounded-full border-[3px] border-foreground bg-card" />
               <button
                 type="button"
                 aria-label={`Checkpoint at mile ${Math.round(c.mile)}, ${RISK[c.risk].label}`}
                 onClick={() => onSelectCheckpoint(route.id, c.index)}
-                className="flex min-h-14 w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+                className="flex min-h-14 w-full items-start gap-3 rounded-lg px-2 py-2.5 text-left outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
               >
-                <span className="mt-1.5 size-3.5 shrink-0 rounded-full" style={{ backgroundColor: RISK[c.risk].color }} aria-hidden />
                 <span className="min-w-0 flex-1 space-y-0.5">
                   <span className="flex items-center justify-between gap-2">
-                    <span className="text-base font-medium tabular">
+                    <span className="text-lg font-bold tabular">
                       {formatMiles(c.mile)} · {formatEta(c.eta_utc, c.tz)}
                     </span>
                     <RiskBadge level={c.risk} size="sm" />
                   </span>
                   <span className="block text-base text-muted-foreground tabular">{conditions(c)}</span>
                   {c.drivers.map((d) => (
-                    <span key={d} className="block text-base font-medium">
+                    <span key={d} className="block text-base font-semibold">
                       {d}
                     </span>
                   ))}

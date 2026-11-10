@@ -17,9 +17,9 @@ export function LoadingState() {
       <p className="flex items-center gap-2 text-lg font-medium">
         <Loader2 className="size-6 animate-spin" aria-hidden /> {STAGES[stage]}
       </p>
-      <Skeleton className="h-36 w-full rounded-xl" />
-      <Skeleton className="h-28 w-full rounded-xl" />
-      <Skeleton className="h-28 w-full rounded-xl" />
+      <Skeleton className="h-36 w-full rounded-lg" />
+      <Skeleton className="h-28 w-full rounded-lg" />
+      <Skeleton className="h-28 w-full rounded-lg" />
     </div>
   )
 }

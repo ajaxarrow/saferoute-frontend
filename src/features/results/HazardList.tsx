@@ -22,7 +22,7 @@ export function HazardList({ route, onSelectStretch }: HazardListProps) {
 
   if (stretches.length === 0) {
     return (
-      <p className="flex items-center gap-3 rounded-xl bg-muted p-3 text-base">
+      <p className="flex items-center gap-3 rounded-lg bg-muted p-3 text-base font-semibold">
         <CircleCheck className="size-6 shrink-0 text-[#188038]" aria-hidden /> Clear all the way: no Moderate or worse weather on {route.label}.
       </p>
     )
@@ -30,18 +30,18 @@ export function HazardList({ route, onSelectStretch }: HazardListProps) {
 
   return (
     <section aria-label={`Rough stretches on ${route.label}`} className="space-y-2">
-      <h3 className="text-lg font-medium">Rough stretches</h3>
-      <ul className="-mx-3">
+      <h3 className="text-xl font-extrabold">Rough stretches</h3>
+      <ul className="space-y-2">
         {stretches.map((s) => (
           <li key={s.firstIndex}>
             <button
               type="button"
               onClick={() => onSelectStretch(route.id, s.firstIndex)}
-              className="flex min-h-14 w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+              className="flex min-h-14 w-full items-start gap-3 rounded-lg border-2 border-border px-3 py-2.5 text-left outline-none hover:border-foreground/50 focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               <RiskBadge level={s.worst} size="sm" className="mt-0.5" />
               <span className="min-w-0 flex-1">
-                <span className="block text-base font-medium tabular">
+                <span className="block text-lg font-bold tabular">
                   {s.fromMile === s.toMile ? `Mile ${Math.round(s.fromMile)}` : `Mile ${Math.round(s.fromMile)}–${Math.round(s.toMile)}`}
                   <span className="font-normal text-muted-foreground"> · {formatMiles(s.toMile - s.fromMile || 0)}</span>
                 </span>
