@@ -14,12 +14,13 @@ export function LoadingState() {
 
   return (
     <div className="space-y-4" role="status" aria-live="polite">
-      <p className="flex items-center gap-2 text-lg font-medium">
-        <Loader2 className="size-6 animate-spin" aria-hidden /> {STAGES[stage]}
+      <p className="flex items-center gap-2 text-base font-medium">
+        <Loader2 className="size-5 animate-spin" aria-hidden /> {STAGES[stage]}
       </p>
-      <Skeleton className="h-36 w-full rounded-lg" />
-      <Skeleton className="h-28 w-full rounded-lg" />
-      <Skeleton className="h-28 w-full rounded-lg" />
+      <Skeleton className="h-40 w-full rounded-2xl bg-secondary ring-1 ring-border" />
+      <Skeleton className="h-14 w-full rounded-xl bg-secondary ring-1 ring-border" />
+      <Skeleton className="h-14 w-full rounded-xl bg-secondary ring-1 ring-border" />
+      <Skeleton className="h-32 w-full rounded-xl bg-secondary ring-1 ring-border" />
     </div>
   )
 }
