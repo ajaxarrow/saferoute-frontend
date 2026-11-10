@@ -1,0 +1,77 @@
+import type { FeatureCollection } from 'geojson'
+import type { GeoJSONSource, Map as MapLibreMap } from 'maplibre-gl'
+import type { PlanResponse } from '@/api/types'
+import { checkpointsToGeoJSON, riskSegments, routesToGeoJSON } from './routeLayers'
+
+export const SOURCE = { routes: 'routes', risk: 'selected-risk', checkpoints: 'checkpoints' } as const
+export const LAYER = {
+  hit: 'routes-hit',
+  other: 'routes-other',
+  casing: 'selected-casing',
+  risk: 'selected-risk-line',
+  checkpoints: 'checkpoints',
+} as const
+
+const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] }
+
+/** Adds sources and layers. Safe to call after every style change (theme switch wipes them). */
+export function addRouteLayers(map: MapLibreMap): void {
+  for (const id of Object.values(SOURCE)) {
+    if (!map.getSource(id)) map.addSource(id, { type: 'geojson', data: EMPTY })
+  }
+  const line = { 'line-join': 'round', 'line-cap': 'round' } as const
+
+  map.addLayer({
+    id: LAYER.hit,
+    type: 'line',
+    source: SOURCE.routes,
+    layout: line,
+    paint: { 'line-width': 24, 'line-opacity': 0 },
+  })
+  map.addLayer({
+    id: LAYER.other,
+    type: 'line',
+    source: SOURCE.routes,
+    filter: ['!', ['get', 'isSelected']],
+    layout: line,
+    paint: { 'line-color': '#64748b', 'line-width': 4, 'line-opacity': 0.8 },
+  })
+  map.addLayer({
+    id: LAYER.casing,
+    type: 'line',
+    source: SOURCE.routes,
+    filter: ['get', 'isSelected'],
+    layout: line,
+    paint: { 'line-color': '#ffffff', 'line-width': 11, 'line-opacity': 0.95 },
+  })
+  map.addLayer({
+    id: LAYER.risk,
+    type: 'line',
+    source: SOURCE.risk,
+    layout: { 'line-join': 'round', 'line-cap': 'butt' },
+    paint: { 'line-color': ['get', 'color'], 'line-width': 7 },
+  })
+  map.addLayer({
+    id: LAYER.checkpoints,
+    type: 'circle',
+    source: SOURCE.checkpoints,
+    paint: {
+      'circle-color': ['get', 'color'],
+      'circle-radius': ['case', ['get', 'severe'], 8, 6],
+      'circle-stroke-color': '#ffffff',
+      'circle-stroke-width': 2,
+    },
+  })
+}
+
+function setData(map: MapLibreMap, id: string, data: GeoJSON.GeoJSON) {
+  ;(map.getSource(id) as GeoJSONSource | undefined)?.setData(data)
+}
+
+/** Pushes the current plan and selection into the map's sources (no layer churn). */
+export function setRouteData(map: MapLibreMap, plan: PlanResponse | undefined, selectedId: string | undefined): void {
+  const selected = plan?.routes.find((r) => r.id === selectedId) ?? plan?.routes[0]
+  setData(map, SOURCE.routes, plan && selected ? routesToGeoJSON(plan, selected.id) : EMPTY)
+  setData(map, SOURCE.risk, selected ? { type: 'FeatureCollection', features: riskSegments(selected) } : EMPTY)
+  setData(map, SOURCE.checkpoints, selected ? checkpointsToGeoJSON(selected) : EMPTY)
+}
