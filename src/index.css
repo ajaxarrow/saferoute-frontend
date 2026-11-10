@@ -206,3 +206,18 @@ input, textarea {
     font-size: 16px !important;
   }
 }
+
+/* Checkpoint popup: match the rest of the UI. */
+.maplibregl-popup-content {
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: var(--shadow-float);
+}
+.maplibregl-popup-close-button {
+  width: 32px;
+  height: 32px;
+  font-size: 20px;
+  line-height: 1;
+  color: #475569;
+  border-radius: 10px;
+}
