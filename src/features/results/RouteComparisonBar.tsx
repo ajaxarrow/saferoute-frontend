@@ -62,7 +62,7 @@ export function RouteComparisonBar({ routes, recommendedId, selectedId, onSelect
                 </span>
                 <RiskBadge level={summary.worst} size="sm" />
               </span>
-              <dl className="flex items-end justify-between gap-3 tabular">
+              <dl className="flex items-center justify-between gap-3 tabular">
                 <div>
                   <dt className="sr-only">Time</dt>
                   <dd className="text-xl leading-none font-semibold">{formatDuration(summary.duration_s)}</dd>

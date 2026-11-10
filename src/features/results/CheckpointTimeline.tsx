@@ -74,7 +74,7 @@ export function CheckpointTimeline({ route, onSelectCheckpoint }: CheckpointTime
                     <RiskBadge level={c.risk} size="sm" />
                   </span>
                   <span className="block text-sm text-muted-foreground tabular">{conditions(c)}</span>
-                  {c.drivers.map((d) => (
+                  {c.drivers.filter((d) => !conditions(c).includes(d)).map((d) => (
                     <span key={d} className="block text-sm font-medium">
                       {d}
                     </span>
