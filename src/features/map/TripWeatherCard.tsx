@@ -1,4 +1,4 @@
-import { ChevronDown, CloudRain, Eye, EyeOff, Flag, Info, Moon, Pause, Play, Snowflake, Sun, Truck, Wind, type LucideIcon } from 'lucide-react'
+import { ChevronDown, GripVertical, CloudRain, Eye, EyeOff, Flag, Info, Moon, Pause, Play, Snowflake, Sun, Truck, Wind, type LucideIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { PlannedRoute } from '@/api/types'
 import { RouteLine } from '@/components/RouteLine'
@@ -30,6 +30,8 @@ interface TripWeatherCardProps {
   /** Start with the details (weather now, route strip, legend) open. */
   defaultExpanded?: boolean
   className?: string
+  /** Pointer and key handlers that make the grip move the whole bar; omit for a fixed bar. */
+  dragHandleProps?: React.HTMLAttributes<HTMLElement>
 }
 
 function Stat({ icon: Icon, label, value, active }: { icon: LucideIcon; label: string; value: string; active: boolean }) {
@@ -48,7 +50,7 @@ function Stat({ icon: Icon, label, value, active }: { icon: LucideIcon; label: s
  * Weather for the selected route only: what the truck is driving through at this hour, where it is on the route,
  * and the whole route's risk laid out as a strip the truck moves along.
  */
-export function TripWeatherCard({ route, truck, hour, maxHour, onHourChange, visible, onVisibleChange, playing, onPlayingChange, intervalMiles, defaultExpanded = false, className }: TripWeatherCardProps) {
+export function TripWeatherCard({ route, truck, hour, maxHour, onHourChange, visible, onVisibleChange, playing, onPlayingChange, intervalMiles, defaultExpanded = false, className, dragHandleProps }: TripWeatherCardProps) {
   const [expanded, setExpanded] = useState(defaultExpanded)
   const [legendOpen, setLegendOpen] = useState(false)
   // Playing follows the trip and loops after arrival instead of idling through empty forecast hours.
@@ -68,6 +70,17 @@ export function TripWeatherCard({ route, truck, hour, maxHour, onHourChange, vis
   return (
     <section aria-label={`Weather along ${route.label}`} className={cn('w-full rounded-2xl border bg-card p-2 shadow-float', className)}>
       <div className="flex items-center gap-2">
+        {dragHandleProps && (
+          <button
+            type="button"
+            aria-label="Move forecast controls. Drag, or use arrow keys. Double-click to reset."
+            title="Drag to move"
+            {...dragHandleProps}
+            className="-mr-1 -ml-1 flex h-11 w-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-lg text-muted-foreground/70 hover:bg-muted hover:text-foreground active:cursor-grabbing"
+          >
+            <GripVertical className="size-4" aria-hidden />
+          </button>
+        )}
         <button
           type="button"
           aria-label={playing ? 'Pause forecast animation' : 'Play forecast animation'}

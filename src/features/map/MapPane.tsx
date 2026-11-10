@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Place, PlanResponse, RoutePreview } from '@/api/types'
+import { useDraggable } from '@/hooks/useDraggable'
 import { truckAt } from '@/lib/journey'
 import { cn } from '@/lib/utils'
 import { MapView, type FitPadding, type MapFocus } from './MapView'
@@ -48,6 +49,8 @@ export function MapPane({ plan, origin: from, destination: to, preview, selected
     return () => clearTimeout(id)
   }, [hour])
 
+  const dock = useDraggable()
+
   const route = plan ? (plan.routes.find((r) => r.id === (selectedRouteId ?? plan.recommended_route_id)) ?? plan.routes[0]) : undefined
   const truck = useMemo(() => (route ? truckAt(route, hour) : undefined), [route, hour])
 
@@ -72,7 +75,7 @@ export function MapPane({ plan, origin: from, destination: to, preview, selected
         selectedCheckpoint={selectedCheckpoint}
       />
       {plan && route && truck && (
-        <div className={cn('absolute z-10 transition-[left] duration-200 motion-reduce:transition-none', forecastClassName)}>
+        <div ref={dock.ref} style={dock.style} className={cn('absolute z-10 transition-[left] duration-200 motion-reduce:transition-none', forecastClassName)}>
           <TripWeatherCard
             route={route}
             truck={truck}
@@ -84,6 +87,7 @@ export function MapPane({ plan, origin: from, destination: to, preview, selected
             playing={playing}
             onPlayingChange={setPlaying}
             intervalMiles={intervalMiles}
+            dragHandleProps={dock.handleProps}
           />
         </div>
       )}
