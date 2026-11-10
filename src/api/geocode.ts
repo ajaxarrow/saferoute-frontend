@@ -1,3 +1,4 @@
+import { US_STATE_CODES } from '@/lib/usStates'
 import { MAPTILER_KEY, maptilerUrl } from './maptiler'
 import { MOCK_ENABLED, mockPlaces } from './mock'
 import type { Place } from './types'
@@ -9,26 +10,32 @@ const SEARCH_ERROR = 'Place search is unavailable. Try again in a moment.'
 interface ContextEntry {
   id: string
   text: string
-  short_code?: string
 }
 
 interface GeocodeFeature {
   text: string
-  place_name: string
+  /** House number, for address results. */
+  address?: string
+  place_type: string[]
   center: [number, number]
   context?: ContextEntry[]
 }
 
-/** "Denver, Colorado, United States" → { label: "Denver, CO", name: "Denver", region: "CO" }. */
+const contextText = (feature: GeocodeFeature, type: string) => feature.context?.find((c) => c.id.startsWith(`${type}.`))?.text
+
+/**
+ * "100 Main Street, Denver, CO". Built from the structured fields because MapTiler's `place_name`
+ * has no state abbreviation and mixes postcodes into the state ("Columbia 20003").
+ */
 export function toPlace(feature: GeocodeFeature): Place {
-  const state = feature.context?.find((c) => c.id.startsWith('region'))
-  const code = state?.short_code?.replace(/^US-/i, '') ?? ''
-  const parts = feature.place_name
-    .split(', ')
-    .filter((part) => part !== 'United States')
-    .map((part) => (code && part === state?.text ? code : part))
+  const name = feature.address ? `${feature.address} ${feature.text}` : feature.text
+  const kind = feature.place_type[0]
+  const city = kind === 'municipality' || kind === 'region' ? undefined : contextText(feature, 'municipality')
+  const state = contextText(feature, 'region')
+  const code = state ? (US_STATE_CODES[state] ?? state) : ''
+  const parts = [name, city, kind === 'region' ? undefined : code].filter((part): part is string => Boolean(part))
   const [lon, lat] = feature.center
-  return { label: parts.join(', '), name: parts[0] ?? feature.text, region: code, lat, lon }
+  return { label: parts.join(', '), name, region: code, lat, lon }
 }
 
 export async function searchPlaces(query: string, signal?: AbortSignal): Promise<Place[]> {

@@ -6,7 +6,7 @@ const OVERRIDE = {
   light: import.meta.env.VITE_MAP_STYLE_LIGHT as string | undefined,
   dark: import.meta.env.VITE_MAP_STYLE_DARK as string | undefined,
 }
-const MAPTILER_STYLE: Record<Theme, string> = { light: 'streets-v2', dark: 'streets-v2-dark' }
+const MAPTILER_STYLE: Record<Theme, string> = { light: 'streets-v4', dark: 'streets-v4-dark' }
 const FALLBACK: Record<Theme, string> = {
   light: 'https://tiles.openfreemap.org/styles/liberty',
   dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',

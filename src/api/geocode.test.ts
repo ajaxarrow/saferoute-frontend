@@ -26,15 +26,19 @@ describe('searchPlaces', () => {
     ])
   })
 
-  it('keeps the street part of an address', async () => {
-    const address = {
-      ...feature({ text: 'Main Street', region: 'Colorado', code: 'CO', lon: -105, lat: 39.7 }),
-      place_type: ['address'],
-      place_name: '100 Main Street, Denver, Colorado, United States',
-    }
+  it('labels an address as "number street, city, ST"', async () => {
+    const address = feature({ text: 'Main Street', address: '100', city: 'Denver', region: 'Colorado', lon: -105, lat: 39.7, type: 'address' })
     server.use(geocodeHandler({ '100 main': [address] }))
     const [place] = await searchPlaces('100 main')
     expect(place).toMatchObject({ label: '100 Main Street, Denver, CO', name: '100 Main Street', region: 'CO' })
+  })
+
+  it('keeps the city for a neighbourhood and abbreviates every state, including DC', async () => {
+    const hood = feature({ text: 'Austin', city: 'Chicago', region: 'Illinois', lon: -87.7, lat: 41.9, type: 'neighbourhood' })
+    const dc = feature({ text: 'Washington', region: 'Columbia', lon: -77, lat: 38.9 })
+    server.use(geocodeHandler({ austin: [hood], wash: [dc] }))
+    expect((await searchPlaces('austin'))[0].label).toBe('Austin, Chicago, IL')
+    expect((await searchPlaces('wash'))[0]).toMatchObject({ label: 'Washington, DC', region: 'DC' })
   })
 
   it('throws a readable error when MapTiler rejects the request', async () => {
