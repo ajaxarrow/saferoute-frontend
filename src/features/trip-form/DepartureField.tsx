@@ -1,7 +1,7 @@
 import { CalendarClock } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Segmented } from '@/components/Segmented'
-import { defaultCustomLocal, describeDeparture, formatLocalInput, type DepartureChoice } from './departure'
+import { defaultCustomLocal, describeDeparture, type DepartureChoice } from './departure'
 
 interface DepartureFieldProps {
   value: DepartureChoice
@@ -31,7 +31,6 @@ export function DepartureField({ value, onChange }: DepartureFieldProps) {
             id="departure-time"
             type="datetime-local"
             value={value.local}
-            min={formatLocalInput(new Date())}
             onChange={(e) => onChange({ mode: 'custom', local: e.target.value })}
             className="h-12 w-full rounded-xl border bg-background px-3 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           />

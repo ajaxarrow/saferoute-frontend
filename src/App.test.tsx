@@ -61,4 +61,14 @@ describe('App', () => {
     await waitFor(() => expect(screen.getByRole('combobox', { name: 'From' })).toBeVisible())
     expect(screen.getByRole('combobox', { name: 'From' })).toHaveValue('Los Angeles, CA, USA')
   })
+
+  it('offers a way back to the results while editing', async () => {
+    planHandler = () => HttpResponse.json(sample)
+    render(<App />)
+    const user = await fillAndSubmit()
+    await screen.findByRole('heading', { name: /take route 2/i })
+    await user.click(screen.getByRole('button', { name: /edit trip/i }))
+    await user.click(screen.getByRole('button', { name: /back to results/i }))
+    expect(await screen.findByRole('heading', { name: /take route 2/i })).toBeVisible()
+  })
 })

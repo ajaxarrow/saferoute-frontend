@@ -1,5 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ArrowLeft } from 'lucide-react'
 import { lazy, Suspense, useCallback, useMemo, useState, type ReactNode } from 'react'
+import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/sonner'
 import type { PlanRequest, PlanResponse } from '@/api/types'
 import type { FitPadding, MapFocus } from '@/features/map/MapView'
@@ -38,6 +40,7 @@ function Planner() {
         onSuccess: (data) => {
           setPlan(data)
           setSelectedRouteId(data.recommended_route_id)
+          setFocus(null) // a focus request from the previous plan must not fly the new map somewhere
           setView('results')
           setSheet('half')
         },
@@ -72,6 +75,11 @@ function Planner() {
             setView('form')
             setSheet('full')
           }} />}
+      {view === 'form' && plan && !trip.isPending && (
+        <Button variant="ghost" onClick={() => setView('results')} className="-mb-3 h-11 gap-1.5 rounded-xl px-3">
+          <ArrowLeft className="size-4" /> Back to results
+        </Button>
+      )}
       <div hidden={view === 'results' && Boolean(plan) && !trip.isPending}>
         <TripForm onSubmit={submit} isLoading={trip.isPending} error={trip.error} />
       </div>

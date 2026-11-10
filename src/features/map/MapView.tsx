@@ -1,7 +1,7 @@
 import { Map as MapLibreMap, NavigationControl, Popup, type MapLayerMouseEvent } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useEffect, useRef, useState } from 'react'
-import type { PlanResponse } from '@/api/types'
+import type { Checkpoint, PlanResponse, PlannedRoute } from '@/api/types'
 import { checkpointPopupHtml } from './checkpointPopup'
 import { addHeatmapLayers, setHeatmapData, setHeatmapHour, setHeatmapVisible } from './heatmapLayer'
 import { addRouteLayers, LAYER, setRouteData } from './mapLayers'
@@ -39,6 +39,7 @@ const US_CENTER: [number, number] = [-98.5, 39.5]
 export function MapView({ plan, selectedRouteId, onSelectRoute, theme, fitPadding, focus, heatmapHour, heatmapVisible }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
+  const popupRef = useRef<Popup | null>(null)
   const [styleVersion, setStyleVersion] = useState(0) // bumps whenever a (new) style finished loading
 
   // Latest props for event handlers registered once at map creation.
@@ -46,6 +47,15 @@ export function MapView({ plan, selectedRouteId, onSelectRoute, theme, fitPaddin
   useEffect(() => {
     live.current = { plan, onSelectRoute, theme }
   })
+
+  /** Opens the checkpoint popup, replacing any popup that is already open. */
+  const showPopup = (map: MapLibreMap, route: PlannedRoute, cp: Checkpoint) => {
+    popupRef.current?.remove()
+    popupRef.current = new Popup({ offset: 14, maxWidth: '300px' })
+      .setLngLat([cp.lon, cp.lat])
+      .setHTML(checkpointPopupHtml(route, cp))
+      .addTo(map)
+  }
 
   useEffect(() => {
     const map = new MapLibreMap({
@@ -70,7 +80,7 @@ export function MapView({ plan, selectedRouteId, onSelectRoute, theme, fitPaddin
       const props = e.features?.[0]?.properties
       const route = live.current.plan?.routes.find((r) => r.id === props?.routeId)
       const cp = route?.checkpoints[Number(props?.index)]
-      if (route && cp) new Popup({ offset: 14, maxWidth: '300px' }).setLngLat([cp.lon, cp.lat]).setHTML(checkpointPopupHtml(route, cp)).addTo(map)
+      if (route && cp) showPopup(map, route, cp)
     })
     for (const layer of [LAYER.hit, LAYER.checkpoints]) {
       map.on('mouseenter', layer, () => (map.getCanvas().style.cursor = 'pointer'))
@@ -130,7 +140,7 @@ export function MapView({ plan, selectedRouteId, onSelectRoute, theme, fitPaddin
     const cp = route?.checkpoints[focus.index]
     if (!route || !cp) return
     map.flyTo({ center: [cp.lon, cp.lat], zoom: Math.max(map.getZoom(), 7), duration: 700 })
-    new Popup({ offset: 14, maxWidth: '300px' }).setLngLat([cp.lon, cp.lat]).setHTML(checkpointPopupHtml(route, cp)).addTo(map)
+    showPopup(map, route, cp)
   }, [focus, plan])
 
   return <div ref={containerRef} className="size-full" />
