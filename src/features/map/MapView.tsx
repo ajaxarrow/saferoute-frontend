@@ -3,6 +3,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import { useEffect, useRef, useState } from 'react'
 import type { PlanResponse } from '@/api/types'
 import { checkpointPopupHtml } from './checkpointPopup'
+import { addHeatmapLayers, setHeatmapData, setHeatmapHour, setHeatmapVisible } from './heatmapLayer'
 import { addRouteLayers, LAYER, setRouteData } from './mapLayers'
 import { addPlanMarkers } from './mapMarkers'
 import { mapStyleUrl, type Theme } from './mapStyle'
@@ -29,11 +30,13 @@ interface MapViewProps {
   theme: Theme
   fitPadding: FitPadding
   focus?: MapFocus | null
+  heatmapHour: number
+  heatmapVisible: boolean
 }
 
 const US_CENTER: [number, number] = [-98.5, 39.5]
 
-export function MapView({ plan, selectedRouteId, onSelectRoute, theme, fitPadding, focus }: MapViewProps) {
+export function MapView({ plan, selectedRouteId, onSelectRoute, theme, fitPadding, focus, heatmapHour, heatmapVisible }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
   const [styleVersion, setStyleVersion] = useState(0) // bumps whenever a (new) style finished loading
@@ -55,6 +58,7 @@ export function MapView({ plan, selectedRouteId, onSelectRoute, theme, fitPaddin
     map.addControl(new NavigationControl({ showCompass: false }), 'top-right')
     map.on('style.load', () => {
       addRouteLayers(map)
+      addHeatmapLayers(map, LAYER.hit)
       setStyleVersion((v) => v + 1)
     })
 
@@ -93,6 +97,22 @@ export function MapView({ plan, selectedRouteId, onSelectRoute, theme, fitPaddin
   useEffect(() => {
     if (mapRef.current) setRouteData(mapRef.current, plan, selectedId)
   }, [plan, selectedId, styleVersion])
+
+  useEffect(() => {
+    if (mapRef.current) setHeatmapData(mapRef.current, plan?.heatmap)
+  }, [plan, styleVersion])
+
+  // Scrubbing only repoints paint expressions; coalesce bursts to one update per frame.
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      if (mapRef.current) setHeatmapHour(mapRef.current, heatmapHour)
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [heatmapHour, plan, styleVersion])
+
+  useEffect(() => {
+    if (mapRef.current) setHeatmapVisible(mapRef.current, heatmapVisible)
+  }, [heatmapVisible, plan, styleVersion])
 
   useEffect(() => {
     const map = mapRef.current
