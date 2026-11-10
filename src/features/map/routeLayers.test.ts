@@ -1,6 +1,6 @@
 import sample from '@/api/fixtures/plan.sample.json'
 import type { PlanResponse, PlannedRoute } from '@/api/types'
-import { boundsOf, boundsOfPoints, checkpointsToGeoJSON, previewToGeoJSON, riskSegments, routesToGeoJSON } from './routeLayers'
+import { boundsOf, boundsOfPoints, checkpointsToGeoJSON, previewToGeoJSON, riskRanges, riskSegments, routesToGeoJSON } from './routeLayers'
 
 const plan = sample as unknown as PlanResponse
 
@@ -97,5 +97,21 @@ describe('previewToGeoJSON', () => {
 describe('boundsOfPoints', () => {
   it('covers every point as [[west, south], [east, north]]', () => {
     expect(boundsOfPoints([[-118, 34], [-105, 39.7], [-110, 30]])).toEqual([[-118, 30], [-105, 39.7]])
+  })
+})
+
+describe('riskRanges', () => {
+  it('covers the whole route once, in order, with no gaps', () => {
+    for (const route of plan.routes) {
+      const ranges = riskRanges(route)
+      expect(ranges[0].from).toBe(0)
+      expect(ranges[ranges.length - 1].to).toBeCloseTo(route.summary.total_miles, 5)
+      ranges.slice(1).forEach((r, i) => expect(r.from).toBeCloseTo(ranges[i].to, 5))
+    }
+  })
+
+  it('merges neighbouring checkpoints with the same risk', () => {
+    const ranges = riskRanges(plan.routes[0])
+    ranges.slice(1).forEach((r, i) => expect(r.risk).not.toBe(ranges[i].risk))
   })
 })

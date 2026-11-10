@@ -2,7 +2,7 @@ import type { FeatureCollection } from 'geojson'
 import type { ExpressionSpecification, GeoJSONSource, Map as MapLibreMap } from 'maplibre-gl'
 import type { Heatmap } from '@/api/types'
 import { RISK } from '@/lib/risk'
-import { heatmapToGeoJSON, hourProperty } from './heatmapGeoJson'
+import { heatmapRouteFilter, heatmapToGeoJSON, hourProperty } from './heatmapGeoJson'
 
 export const HEAT = { source: 'heat', glow: 'heat-glow', cells: 'heat-cells' } as const
 
@@ -75,6 +75,14 @@ export function setHeatmapHour(map: MapLibreMap, hour: number): void {
   if (!map.getLayer(HEAT.glow) || !map.getLayer(HEAT.cells)) return
   map.setPaintProperty(HEAT.glow, 'heatmap-weight', weightFor(hour))
   map.setPaintProperty(HEAT.cells, 'circle-color', cellColorFor(hour))
+}
+
+/** Shows only the selected route's weather. Older responses without route membership show everything. */
+export function setHeatmapRoute(map: MapLibreMap, routeId: string | undefined, hasMembership: boolean): void {
+  const filter = routeId && hasMembership ? heatmapRouteFilter(routeId) : null
+  for (const id of [HEAT.glow, HEAT.cells]) {
+    if (map.getLayer(id)) map.setFilter(id, filter)
+  }
 }
 
 export function setHeatmapVisible(map: MapLibreMap, visible: boolean): void {

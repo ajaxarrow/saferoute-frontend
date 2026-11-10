@@ -1,11 +1,11 @@
-import { Map as MapLibreMap, NavigationControl, Popup, type MapLayerMouseEvent } from 'maplibre-gl'
+import { Map as MapLibreMap, Marker, NavigationControl, Popup, type MapLayerMouseEvent } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useEffect, useRef, useState } from 'react'
 import type { Checkpoint, Place, PlanResponse, PlannedRoute, RoutePreview } from '@/api/types'
 import { checkpointPopupHtml } from './checkpointPopup'
-import { addHeatmapLayers, setHeatmapData, setHeatmapHour, setHeatmapVisible } from './heatmapLayer'
+import { addHeatmapLayers, setHeatmapData, setHeatmapHour, setHeatmapRoute, setHeatmapVisible } from './heatmapLayer'
 import { addRouteLayers, LAYER, setPreviewData, setRouteData } from './mapLayers'
-import { addEndpointMarkers, addPlanMarkers } from './mapMarkers'
+import { addEndpointMarkers, addPlanMarkers, createTruckMarker } from './mapMarkers'
 import { mapStyleUrl, type Theme } from './mapStyle'
 import { boundsOf, boundsOfPoints } from './routeLayers'
 
@@ -37,11 +37,13 @@ interface MapViewProps {
   focus?: MapFocus | null
   heatmapHour: number
   heatmapVisible: boolean
+  /** Where the truck is at the forecast hour being shown. */
+  truckPosition?: [number, number]
 }
 
 const US_CENTER: [number, number] = [-98.5, 39.5]
 
-export function MapView({ plan, origin, destination, preview, selectedRouteId, onSelectRoute, theme, fitPadding, focus, heatmapHour, heatmapVisible }: MapViewProps) {
+export function MapView({ plan, origin, destination, preview, selectedRouteId, onSelectRoute, theme, fitPadding, focus, heatmapHour, heatmapVisible, truckPosition }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
   const popupRef = useRef<Popup | null>(null)
@@ -144,6 +146,31 @@ export function MapView({ plan, origin, destination, preview, selectedRouteId, o
     // Re-frame when the places or their routes change, not when padding changes with layout.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [plan, originKey, destinationKey, preview])
+
+  // The heatmap shows the selected route's weather only.
+  const hasMembership = Boolean(plan?.heatmap.route_ids)
+  useEffect(() => {
+    if (mapRef.current) setHeatmapRoute(mapRef.current, selectedId, hasMembership)
+  }, [selectedId, hasMembership, plan, styleVersion])
+
+  // The truck marker rides the selected route as the forecast hour moves.
+  const truckRef = useRef<Marker | null>(null)
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !plan || !truckPosition) {
+      truckRef.current?.remove()
+      truckRef.current = null
+      return
+    }
+    if (!truckRef.current) truckRef.current = createTruckMarker().setLngLat(truckPosition).addTo(map)
+    else truckRef.current.setLngLat(truckPosition)
+  }, [plan, truckPosition, styleVersion])
+  useEffect(
+    () => () => {
+      truckRef.current?.remove()
+    },
+    [],
+  )
 
   // Scrubbing only repoints paint expressions; coalesce bursts to one update per frame.
   useEffect(() => {

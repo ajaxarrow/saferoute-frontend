@@ -82,7 +82,7 @@ function Planner() {
   const fitPadding: FitPadding = useMemo(
     () =>
       isDesktop
-        ? { top: 70, right: 70, bottom: 230, left: 70 }
+        ? { top: 70, right: 70, bottom: 340, left: 70 }
         : { top: 170, right: 30, bottom: Math.round(window.innerHeight * 0.55), left: 30 },
     [isDesktop],
   )

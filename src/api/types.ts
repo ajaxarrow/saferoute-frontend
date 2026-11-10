@@ -72,6 +72,8 @@ export interface Heatmap {
   hours: number
   /** risk[hour][pointIndex] = RiskLevel as an int 0–4. */
   risk: number[][]
+  /** route_ids[pointIndex] = ids of the routes passing through that point (absent on older responses). */
+  route_ids?: string[][]
 }
 
 export interface PlanResponse {

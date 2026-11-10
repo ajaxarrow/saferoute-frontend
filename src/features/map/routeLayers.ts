@@ -56,29 +56,40 @@ export interface RiskSegmentProps {
   color: string
 }
 
-/**
- * The selected route cut into stretches coloured by risk. Each checkpoint owns the road halfway to
- * its neighbours (the same rule the server uses for risk miles); equal neighbours are merged.
- */
-export function riskSegments(route: PlannedRoute): Feature<LineString, RiskSegmentProps>[] {
-  const coords = route.geometry as LonLat[]
-  const cum = cumulativeMiles(coords)
-  const lineMiles = cum[cum.length - 1]
-  const scale = route.summary.total_miles > 0 ? lineMiles / route.summary.total_miles : 1
-  const marks = route.checkpoints.map((c) => c.mile * scale)
+export interface RiskRange {
+  risk: RiskLevel
+  /** Route miles. */
+  from: number
+  to: number
+}
 
-  const bounds = [0, ...marks.slice(1).map((m, i) => (marks[i] + m) / 2), lineMiles]
-  const spans: { risk: RiskLevel; from: number; to: number }[] = []
+/**
+ * The route cut into stretches by risk, in route miles. Each checkpoint owns the road halfway to its
+ * neighbours (the same rule the server uses for risk miles); equal neighbours are merged.
+ */
+export function riskRanges(route: PlannedRoute): RiskRange[] {
+  const marks = route.checkpoints.map((c) => c.mile)
+  const bounds = [0, ...marks.slice(1).map((m, i) => (marks[i] + m) / 2), route.summary.total_miles]
+  const spans: RiskRange[] = []
   route.checkpoints.forEach((c, i) => {
     const last = spans[spans.length - 1]
     if (last && last.risk === c.risk) last.to = bounds[i + 1]
     else spans.push({ risk: c.risk, from: bounds[i], to: bounds[i + 1] })
   })
+  return spans
+}
 
-  return spans.map((s) => ({
+/** The selected route as line stretches coloured by risk, for the map. */
+export function riskSegments(route: PlannedRoute): Feature<LineString, RiskSegmentProps>[] {
+  const coords = route.geometry as LonLat[]
+  const cum = cumulativeMiles(coords)
+  const lineMiles = cum[cum.length - 1]
+  const scale = route.summary.total_miles > 0 ? lineMiles / route.summary.total_miles : 1
+
+  return riskRanges(route).map((s) => ({
     type: 'Feature',
     properties: { risk: s.risk, color: RISK[s.risk].color },
-    geometry: { type: 'LineString', coordinates: sliceByMiles(coords, cum, s.from, s.to) },
+    geometry: { type: 'LineString', coordinates: sliceByMiles(coords, cum, s.from * scale, s.to * scale) },
   }))
 }
 
