@@ -93,6 +93,7 @@ export function PlaceInput({ label, icon, value, onChange, placeholder, recent, 
           placeholder={placeholder}
           autoComplete="off"
           aria-invalid={showUnpicked || undefined}
+          aria-expanded={open}
           className={cn('h-14 w-full rounded-lg bg-transparent pr-12 pl-12 text-base font-medium outline-none placeholder:font-normal placeholder:text-muted-foreground', showUnpicked && 'text-destructive')}
         />
         {text && (
@@ -113,7 +114,7 @@ export function PlaceInput({ label, icon, value, onChange, placeholder, recent, 
         {open && (
           <CommandList
             onMouseDown={(e) => e.preventDefault()}
-            className="absolute z-40 mt-1 max-h-72 w-full rounded-xl border bg-popover p-1 shadow-float"
+            className="absolute left-0 z-40 mt-1 max-h-72 w-[calc(100%+3.5rem)] overflow-y-auto rounded-xl border bg-popover p-1 shadow-float"
           >
             {!typing && allowCurrentLocation && (
               <CommandGroup>
@@ -159,7 +160,7 @@ export function PlaceInput({ label, icon, value, onChange, placeholder, recent, 
         )}
       </CommandPrimitive>
 
-      {showUnpicked && <p className="px-4 pb-2 text-base text-destructive">Pick a place from the list.</p>}
+      {showUnpicked && <p className="pl-12 pr-4 pb-2 text-sm text-destructive">Pick a place from the list.</p>}
     </div>
   )
 }
