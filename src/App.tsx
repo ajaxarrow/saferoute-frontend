@@ -1,122 +1,149 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useCallback, useMemo, useState, type ReactNode } from 'react'
+import { Toaster } from '@/components/ui/sonner'
+import type { PlanRequest, PlanResponse } from '@/api/types'
+import { HeatmapControl } from '@/features/map/HeatmapControl'
+import { MapView, type FitPadding, type MapFocus } from '@/features/map/MapView'
+import { ResultsPanel } from '@/features/results/ResultsPanel'
+import { BottomSheet } from '@/features/shell/BottomSheet'
+import { LoadingState } from '@/features/shell/LoadingState'
+import { PanelHeader } from '@/features/shell/PanelHeader'
+import { TripSummaryBar } from '@/features/shell/TripSummaryBar'
+import { TripForm } from '@/features/trip-form/TripForm'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { useTheme } from '@/hooks/useTheme'
+import { useTripPlan } from '@/hooks/useTripPlan'
 
-function App() {
-  const [count, setCount] = useState(0)
+const queryClient = new QueryClient({ defaultOptions: { queries: { refetchOnWindowFocus: false } } })
+
+function Planner() {
+  const isDesktop = useMediaQuery('(min-width: 768px)')
+  const { theme, toggle } = useTheme()
+  const trip = useTripPlan()
+
+  const [plan, setPlan] = useState<PlanResponse>()
+  const [request, setRequest] = useState<PlanRequest>()
+  const [view, setView] = useState<'form' | 'results'>('form')
+  const [selectedRouteId, setSelectedRouteId] = useState<string>()
+  const [focus, setFocus] = useState<MapFocus | null>(null)
+  const [sheetExpanded, setSheetExpanded] = useState(true)
+
+  const [hour, setHour] = useState(0)
+  const [playing, setPlaying] = useState(false)
+  const [heatVisible, setHeatVisible] = useState(true)
+
+  const submit = useCallback(
+    (req: PlanRequest) => {
+      setRequest(req)
+      setSheetExpanded(true)
+      setPlaying(false)
+      trip.mutate(req, {
+        onSuccess: (data) => {
+          setPlan(data)
+          setSelectedRouteId(data.recommended_route_id)
+          setHour(0)
+          setView('results')
+        },
+      })
+    },
+    [trip],
+  )
+
+  const selectCheckpoint = useCallback(
+    (routeId: string, index: number) => {
+      setSelectedRouteId(routeId)
+      setFocus({ routeId, index, nonce: Date.now() })
+      if (!isDesktop) setSheetExpanded(false) // reveal the map
+    },
+    [isDesktop],
+  )
+
+  const fitPadding: FitPadding = useMemo(
+    () =>
+      isDesktop
+        ? { top: 70, right: 70, bottom: 230, left: 70 }
+        : { top: 170, right: 30, bottom: Math.round(window.innerHeight * 0.55), left: 30 },
+    [isDesktop],
+  )
+
+  const origin = plan?.routes[0].checkpoints[0]
+  const showResults = view === 'results' && plan && !trip.isPending
+
+  const panel: ReactNode = (
+    <div className="space-y-6">
+      <PanelHeader theme={theme} onToggleTheme={toggle} />
+      {view === 'results' && request && !trip.isPending && <TripSummaryBar request={request} onEdit={() => setView('form')} />}
+      <div hidden={view === 'results' && Boolean(plan) && !trip.isPending}>
+        <TripForm onSubmit={submit} isLoading={trip.isPending} error={trip.error} />
+      </div>
+      {trip.isPending && <LoadingState />}
+      {showResults && (
+        <ResultsPanel
+          plan={plan}
+          selectedRouteId={selectedRouteId ?? plan.recommended_route_id}
+          onSelectRoute={setSelectedRouteId}
+          onSelectCheckpoint={selectCheckpoint}
+        />
+      )}
+    </div>
+  )
+
+  const heatmapControl =
+    plan && origin ? (
+      <HeatmapControl
+        hour={hour}
+        maxHour={plan.heatmap.hours - 1}
+        onHourChange={setHour}
+        departureIso={origin.eta_utc}
+        tz={origin.tz}
+        visible={heatVisible}
+        onVisibleChange={setHeatVisible}
+        playing={playing}
+        onPlayingChange={setPlaying}
+      />
+    ) : null
+
+  const map = (
+    <MapView
+      plan={plan}
+      selectedRouteId={selectedRouteId}
+      onSelectRoute={setSelectedRouteId}
+      theme={theme}
+      fitPadding={fitPadding}
+      focus={focus}
+      heatmapHour={hour}
+      heatmapVisible={heatVisible}
+    />
+  )
+
+  if (isDesktop) {
+    return (
+      <div className="flex h-dvh w-full overflow-hidden">
+        <aside className="w-[440px] shrink-0 overflow-y-auto border-r bg-background p-5">{panel}</aside>
+        <main className="relative min-w-0 flex-1">
+          {map}
+          {heatmapControl && <div className="absolute inset-x-0 bottom-5 mx-auto w-[min(560px,calc(100%-2rem))]">{heatmapControl}</div>}
+        </main>
+      </div>
+    )
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    <div className="relative h-dvh w-full overflow-hidden">
+      {map}
+      {heatmapControl && <div className="absolute inset-x-3 top-3 z-10">{heatmapControl}</div>}
+      <BottomSheet expanded={sheetExpanded} onExpandedChange={setSheetExpanded}>
+        {panel}
+      </BottomSheet>
+    </div>
   )
 }
 
-export default App
+export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Planner />
+      <Toaster position="top-center" />
+    </QueryClientProvider>
+  )
+}
