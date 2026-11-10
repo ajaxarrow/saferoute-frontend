@@ -1,6 +1,7 @@
 import { Info } from 'lucide-react'
 import type { PlanResponse } from '@/api/types'
 import { RouteCard } from './RouteCard'
+import { RouteComparison } from './RouteComparison'
 import { RouteDetails } from './RouteDetails'
 import { Verdict } from './Verdict'
 
@@ -33,6 +34,8 @@ export function ResultsPanel({ plan, selectedRouteId, loadLb, onSelectRoute, onS
           ))}
         </div>
       </section>
+
+      <RouteComparison routes={plan.routes} recommendedId={plan.recommended_route_id} />
 
       <RouteDetails key={selected.id} route={selected} loadLb={loadLb} onSelectCheckpoint={onSelectCheckpoint} />
     </div>

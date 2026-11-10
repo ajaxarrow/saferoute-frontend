@@ -79,9 +79,9 @@ export function addRouteLayers(map: MapLibreMap): void {
     source: SOURCE.checkpoints,
     paint: {
       'circle-color': ['get', 'color'],
-      'circle-radius': ['case', ['get', 'severe'], 8, 6],
+      'circle-radius': ['case', ['get', 'severe'], 9, 7],
       'circle-stroke-color': '#ffffff',
-      'circle-stroke-width': 2,
+      'circle-stroke-width': 2.5,
     },
   })
 }

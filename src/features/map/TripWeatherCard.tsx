@@ -1,5 +1,5 @@
-import { CloudRain, Eye, EyeOff, Flag, Moon, Pause, Play, Snowflake, Sun, Truck, Wind, type LucideIcon } from 'lucide-react'
-import { useEffect } from 'react'
+import { CloudRain, Eye, EyeOff, Flag, Info, Moon, Pause, Play, Snowflake, Sun, Truck, Wind, type LucideIcon } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import type { PlannedRoute } from '@/api/types'
 import { RiskBadge } from '@/features/results/RiskBadge'
 import { Slider } from '@/components/ui/slider'
@@ -25,6 +25,8 @@ interface TripWeatherCardProps {
   onVisibleChange: (visible: boolean) => void
   playing: boolean
   onPlayingChange: (playing: boolean) => void
+  /** Miles between weather checkpoints, for the legend. */
+  intervalMiles?: number
 }
 
 function Stat({ icon: Icon, label, value, active }: { icon: LucideIcon; label: string; value: string; active: boolean }) {
@@ -40,7 +42,8 @@ function Stat({ icon: Icon, label, value, active }: { icon: LucideIcon; label: s
  * Weather for the selected route only: what the truck is driving through at this hour, where it is on the route,
  * and the whole route's risk laid out as a strip the truck moves along.
  */
-export function TripWeatherCard({ route, truck, hour, maxHour, onHourChange, visible, onVisibleChange, playing, onPlayingChange }: TripWeatherCardProps) {
+export function TripWeatherCard({ route, truck, hour, maxHour, onHourChange, visible, onVisibleChange, playing, onPlayingChange, intervalMiles }: TripWeatherCardProps) {
+  const [legendOpen, setLegendOpen] = useState(false)
   // Playing follows the trip and loops after arrival instead of idling through empty forecast hours.
   const playEnd = Math.min(maxHour, Math.ceil(route.summary.duration_s / 3600) + 1)
   useEffect(() => {
@@ -147,14 +150,40 @@ export function TripWeatherCard({ route, truck, hour, maxHour, onHourChange, vis
         <span className="w-12 shrink-0 text-right text-base font-medium tabular">{hour === 0 ? 'Start' : `+${hour}h`}</span>
       </div>
 
-      <ul className="hidden flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground sm:flex" aria-label="Risk colours">
-        {(['LOW', 'MODERATE', 'HIGH', 'SEVERE', 'NO_TRAVEL'] as const).map((level) => (
-          <li key={level} className="flex items-center gap-1">
-            <span className="size-2.5 rounded-full" style={{ backgroundColor: RISK[level].color }} aria-hidden />
-            {RISK[level].label}
-          </li>
-        ))}
-      </ul>
+      <p className="-mt-1 text-sm text-muted-foreground">Drag or press play to see the weather 0–48 h after departure.</p>
+
+      <div>
+        <button
+          type="button"
+          aria-expanded={legendOpen}
+          onClick={() => setLegendOpen((o) => !o)}
+          className="flex min-h-11 items-center gap-1.5 text-base font-medium text-primary sm:hidden"
+        >
+          <Info className="size-4" aria-hidden /> {legendOpen ? 'Hide legend' : 'Legend'}
+        </button>
+        <div aria-label="Legend" role="group" className={cn('space-y-1.5 text-sm', legendOpen ? 'block' : 'hidden', 'sm:block')}>
+          <ul className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground" aria-label="Risk colours">
+            {(['LOW', 'MODERATE', 'HIGH', 'SEVERE', 'NO_TRAVEL'] as const).map((level) => (
+              <li key={level} className="flex items-center gap-1">
+                <span className="size-3 rounded-full" style={{ backgroundColor: RISK[level].color }} aria-hidden />
+                {RISK[level].label}
+              </li>
+            ))}
+          </ul>
+          <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground" aria-label="Map symbols">
+            <li className="flex items-center gap-1.5">
+              <span className="size-3.5 rounded-full border-2 border-white bg-[#188038] shadow-[0_0_0_1px_rgba(0,0,0,0.35)]" aria-hidden />
+              Weather checkpoint{intervalMiles ? ` (every ${intervalMiles} mi)` : ''}: tap for details
+            </li>
+            <li className="flex items-center gap-1.5">
+              <Truck className="size-4 text-primary" aria-hidden /> Truck at this hour
+            </li>
+            <li className="flex items-center gap-1.5">
+              <span className="h-3 w-6 rounded-full opacity-70" style={{ background: `linear-gradient(90deg, ${RISK.LOW.color}, ${RISK.MODERATE.color}, ${RISK.SEVERE.color})` }} aria-hidden /> Heatmap: weather risk along the route
+            </li>
+          </ul>
+        </div>
+      </div>
     </section>
   )
 }

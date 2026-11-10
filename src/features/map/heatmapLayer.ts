@@ -14,6 +14,7 @@ const weightFor = (hour: number): ExpressionSpecification => ['/', ['get', hourP
 const cellColorFor = (hour: number): ExpressionSpecification => [
   'match',
   ['get', hourProperty(hour)],
+  0, RISK.LOW.color, // calm weather is drawn too, so the corridor never looks like "no heatmap"
   1, RISK.MODERATE.color,
   2, RISK.HIGH.color,
   3, RISK.SEVERE.color,
@@ -21,7 +22,7 @@ const cellColorFor = (hour: number): ExpressionSpecification => [
   CLEAR,
 ]
 
-/** Adds the heatmap below `beforeId` so route lines stay on top. Safe to call after each style load. */
+/** Adds the heatmap (a soft risk-coloured band along the trip corridor) below `beforeId` so route lines stay on top. Safe to call after each style load. */
 export function addHeatmapLayers(map: MapLibreMap, beforeId: string): void {
   if (!map.getSource(HEAT.source)) map.addSource(HEAT.source, { type: 'geojson', data: EMPTY })
 
@@ -57,9 +58,9 @@ export function addHeatmapLayers(map: MapLibreMap, beforeId: string): void {
       source: HEAT.source,
       paint: {
         'circle-color': cellColorFor(0),
-        'circle-radius': ['interpolate', ['exponential', 2], ['zoom'], 5, 14, 8, 40, 11, 150],
-        'circle-blur': 0.9,
-        'circle-opacity': ['interpolate', ['linear'], ['zoom'], 6.5, 0, 8.5, 0.6],
+        'circle-radius': ['interpolate', ['exponential', 2], ['zoom'], 3, 7, 5, 13, 8, 40, 11, 150],
+        'circle-blur': 0.85,
+        'circle-opacity': 0.5,
       },
     },
     beforeId,

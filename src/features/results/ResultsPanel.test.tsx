@@ -113,3 +113,18 @@ describe('RiskBar', () => {
     expect(screen.getByRole('img')).toHaveAccessibleName('Risk along route: Low 388 mi, High 148 mi, Severe 125 mi, No Travel 175 mi')
   })
 })
+
+describe('RouteComparison in the results', () => {
+  it('lists every ranking criterion in priority order with a check on the best route in each', () => {
+    setup()
+    const table = screen.getByRole('table', { name: /route criteria/i })
+    const rowHeaders = within(table).getAllByRole('rowheader').map((h) => h.textContent)
+    expect(rowHeaders.join('|')).toMatch(/Severe miles.*High miles.*Average risk.*Travel time/)
+    expect(within(table).getAllByLabelText('best').length).toBeGreaterThanOrEqual(4)
+  })
+
+  it('says which criterion decided the recommendation', () => {
+    setup()
+    expect(screen.getByText(/wins because/i)).toBeInTheDocument()
+  })
+})

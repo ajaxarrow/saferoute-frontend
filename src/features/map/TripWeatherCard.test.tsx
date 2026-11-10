@@ -86,3 +86,19 @@ describe('TripWeatherCard', () => {
     expect(props.onVisibleChange).toHaveBeenCalledWith(false)
   })
 })
+
+describe('TripWeatherCard legend', () => {
+  it('explains the checkpoints, the truck and the heatmap, not just the risk colours', () => {
+    setup(0, 0, { intervalMiles: 25 })
+    const legend = screen.getByRole('group', { name: 'Legend', hidden: true })
+    expect(legend).toHaveTextContent(/weather checkpoint \(every 25 mi\)/i)
+    expect(legend).toHaveTextContent(/truck at this hour/i)
+    expect(legend).toHaveTextContent(/heatmap/i)
+    expect(screen.getByRole('list', { name: 'Risk colours', hidden: true })).toHaveTextContent(/Low.*Moderate.*High.*Severe.*No Travel/)
+  })
+
+  it('says what the 0–48 h slider is for', () => {
+    setup()
+    expect(screen.getByText(/0–48 h after departure/i)).toBeInTheDocument()
+  })
+})

@@ -17,13 +17,14 @@ interface MapPaneProps {
   fitPadding: FitPadding
   focus: MapFocus | null
   isDesktop: boolean
+  intervalMiles?: number
 }
 
 /**
  * The map plus its weather card. The forecast hour lives here, not in App, so scrubbing re-renders only this pane
  * and never the form or results list. The card and the heatmap follow the selected route.
  */
-export function MapPane({ plan, origin: from, destination: to, preview, selectedRouteId, onSelectRoute, theme, fitPadding, focus, isDesktop }: MapPaneProps) {
+export function MapPane({ plan, origin: from, destination: to, preview, selectedRouteId, onSelectRoute, theme, fitPadding, focus, isDesktop, intervalMiles }: MapPaneProps) {
   const [hour, setHour] = useState(0)
   const [playing, setPlaying] = useState(false)
   const [visible, setVisible] = useState(true)
@@ -64,6 +65,7 @@ export function MapPane({ plan, origin: from, destination: to, preview, selected
             onVisibleChange={setVisible}
             playing={playing}
             onPlayingChange={setPlaying}
+            intervalMiles={intervalMiles}
           />
         </div>
       )}

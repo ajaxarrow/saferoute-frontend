@@ -141,6 +141,7 @@ function Planner() {
         fitPadding={fitPadding}
         focus={focus}
         isDesktop={isDesktop}
+        intervalMiles={mapPlan?.effective_interval_miles}
       />
     </Suspense>
   )
