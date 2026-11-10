@@ -56,7 +56,7 @@ export function addRouteLayers(map: MapLibreMap): void {
     source: SOURCE.routes,
     filter: ['!', ['get', 'isSelected']],
     layout: line,
-    paint: { 'line-color': '#64748b', 'line-width': 4, 'line-opacity': 0.8 },
+    paint: { 'line-color': '#9aa0a6', 'line-width': 6, 'line-opacity': 1 },
   })
   map.addLayer({
     id: LAYER.casing,

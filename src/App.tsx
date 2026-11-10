@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/sonner'
 import type { Place, PlanRequest, PlanResponse } from '@/api/types'
 import type { FitPadding, MapFocus } from '@/features/map/MapView'
+import { PeekSummary } from '@/features/results/PeekSummary'
 import { ResultsPanel } from '@/features/results/ResultsPanel'
 import { BottomSheet, type SheetSnap } from '@/features/shell/BottomSheet'
 import { LoadingState } from '@/features/shell/LoadingState'
@@ -90,7 +91,7 @@ function Planner() {
 
   const panel: ReactNode = (
     <div className="space-y-6">
-      <PanelHeader theme={theme} onToggleTheme={toggle} />
+      <PanelHeader theme={theme} onToggleTheme={toggle} compact={view === 'results' || trip.isPending} />
       {view === 'results' && request && !trip.isPending && <TripSummaryBar request={request} onEdit={() => {
             setView('form')
             setSheet('full')
@@ -113,6 +114,7 @@ function Planner() {
       {showResults && (
         <ResultsPanel
           plan={plan}
+          loadLb={request?.load_lb}
           selectedRouteId={selectedRouteId ?? plan.recommended_route_id}
           onSelectRoute={setSelectedRouteId}
           onSelectCheckpoint={selectCheckpoint}
@@ -120,6 +122,11 @@ function Planner() {
       )}
     </div>
   )
+
+  const peekRoute = showResults ? (plan.routes.find((r) => r.id === (selectedRouteId ?? plan.recommended_route_id)) ?? plan.routes[0]) : undefined
+  const peek = peekRoute ? (
+    <PeekSummary route={peekRoute} isRecommended={peekRoute.id === plan?.recommended_route_id} onOpen={() => setSheet('half')} />
+  ) : undefined
 
   const map = (
     <Suspense fallback={<div className="size-full bg-muted" aria-hidden />}>
@@ -141,7 +148,7 @@ function Planner() {
   if (isDesktop) {
     return (
       <div className="flex h-dvh w-full overflow-hidden">
-        <aside className="w-[440px] shrink-0 overflow-y-auto border-r bg-background p-5">{panel}</aside>
+        <aside className="w-[440px] shrink-0 overflow-y-auto bg-background p-5 shadow-[2px_0_12px_rgba(0,0,0,0.12)] z-10">{panel}</aside>
         <main className="relative min-w-0 flex-1">
           {map}
         </main>
@@ -152,7 +159,11 @@ function Planner() {
   return (
     <div className="relative h-dvh w-full overflow-hidden">
       {map}
-      <BottomSheet snap={sheet} onSnapChange={setSheet} resetScrollKey={`${view}-${plan?.recommended_route_id}-${trip.isPending}`}>
+      <BottomSheet
+        snap={sheet}
+        onSnapChange={setSheet}
+        peek={peek}
+        resetScrollKey={`${view}-${plan?.recommended_route_id}-${trip.isPending}`}>
         {panel}
       </BottomSheet>
     </div>

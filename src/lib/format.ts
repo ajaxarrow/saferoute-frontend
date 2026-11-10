@@ -21,3 +21,8 @@ export function formatEta(isoUtc: string, timeZone: string): string {
   const get = (type: string) => parts.find((p) => p.type === type)?.value ?? ''
   return `${get('weekday')} ${get('hour')}:${get('minute')} ${get('dayPeriod')} ${get('timeZoneName')}`
 }
+
+/** "3:10 PM" in the given IANA zone. */
+export function formatClock(isoUtc: string, timeZone: string): string {
+  return new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone }).format(new Date(isoUtc))
+}

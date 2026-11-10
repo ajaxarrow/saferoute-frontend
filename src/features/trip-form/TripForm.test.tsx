@@ -103,6 +103,8 @@ describe('TripForm', () => {
     const when = screen.getByLabelText(/departure time/i)
     await user.clear(when)
     await user.type(when, '2026-12-15T05:00')
+    expect(screen.queryByRole('radio', { name: '10 mi' })).not.toBeInTheDocument() // folded away until asked for
+    await user.click(screen.getByRole('button', { name: /weather checks/i }))
     await user.click(screen.getByRole('radio', { name: '10 mi' }))
     await user.click(screen.getByRole('button', { name: /find safest route/i }))
 

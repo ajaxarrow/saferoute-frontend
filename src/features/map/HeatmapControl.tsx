@@ -31,20 +31,17 @@ export function HeatmapControl({
   const at = new Date(new Date(departureIso).getTime() + hour * 3_600_000).toISOString()
 
   return (
-    <section aria-label="Weather forecast along the route" className="w-full space-y-2.5 rounded-2xl border bg-card/95 p-3.5 shadow-lg backdrop-blur">
+    <section aria-label="Weather forecast along the route" className="w-full space-y-2 rounded-2xl bg-card p-3 shadow-[0_2px_10px_rgba(0,0,0,0.25)]">
       <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Weather risk</p>
-          <p className="truncate text-base font-bold" aria-live="polite">
-            {hour === 0 ? 'At departure' : `+${hour} h`} · {formatEta(at, tz)}
-          </p>
-        </div>
+        <p className="min-w-0 truncate text-base font-medium" aria-live="polite">
+          Weather {hour === 0 ? 'at departure' : `+${hour} h`} · <span className="font-normal text-muted-foreground">{formatEta(at, tz)}</span>
+        </p>
         <button
           type="button"
           aria-pressed={visible}
           aria-label={visible ? 'Hide weather heatmap' : 'Show weather heatmap'}
           onClick={() => onVisibleChange(!visible)}
-          className="flex size-11 shrink-0 items-center justify-center rounded-xl border text-muted-foreground hover:bg-muted"
+          className="flex size-11 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
         >
           {visible ? <Eye className="size-5" /> : <EyeOff className="size-5" />}
         </button>
@@ -70,7 +67,7 @@ export function HeatmapControl({
         />
       </div>
 
-      <ul className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs" aria-label="Legend">
+      <ul className="hidden flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground sm:flex" aria-label="Legend">
         {RISK_ORDER.map((level) => (
           <li key={level} className="flex items-center gap-1">
             <span className="size-2.5 rounded-full" style={{ backgroundColor: RISK[level].color }} aria-hidden />

@@ -22,21 +22,19 @@ interface PlaceInputProps {
   recent: Place[]
   onPicked?: (place: Place) => void
   allowCurrentLocation?: boolean
-  /** Rendered next to the label (e.g. a swap button). */
-  action?: ReactNode
 }
 
 function PlaceRow({ place }: { place: Place }) {
   const rest = place.label.startsWith(place.name) ? place.label.slice(place.name.length).replace(/^,\s*/, '') : place.label
   return (
     <span className="flex min-w-0 flex-col">
-      <span className="truncate font-medium">{place.name}</span>
-      {rest && <span className="truncate text-xs text-muted-foreground">{rest}</span>}
+      <span className="truncate text-lg font-semibold">{place.name}</span>
+      {rest && <span className="truncate text-base text-muted-foreground">{rest}</span>}
     </span>
   )
 }
 
-export function PlaceInput({ label, icon, value, onChange, placeholder, recent, onPicked, allowCurrentLocation, action }: PlaceInputProps) {
+export function PlaceInput({ label, icon, value, onChange, placeholder, recent, onPicked, allowCurrentLocation }: PlaceInputProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [text, setText] = useState(value?.label ?? '')
   const [open, setOpen] = useState(false)
@@ -73,23 +71,16 @@ export function PlaceInput({ label, icon, value, onChange, placeholder, recent, 
   const showUnpicked = !open && text.trim().length > 0 && !value
 
   return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold" onClick={() => inputRef.current?.focus()}>
-          {label}
-        </span>
-        {action}
-      </div>
-
+    <div>
       <CommandPrimitive
         label={label}
         shouldFilter={false}
         onBlur={(e) => {
           if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false)
         }}
-        className="relative"
+        className="relative rounded-xl focus-within:bg-primary/5 focus-within:ring-2 focus-within:ring-ring/60"
       >
-        <span className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-muted-foreground">{icon}</span>
+        <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2">{icon}</span>
         <CommandPrimitive.Input
           ref={inputRef}
           value={text}
@@ -102,10 +93,7 @@ export function PlaceInput({ label, icon, value, onChange, placeholder, recent, 
           placeholder={placeholder}
           autoComplete="off"
           aria-invalid={showUnpicked || undefined}
-          className={cn(
-            'h-12 w-full rounded-xl border bg-background pr-11 pl-11 text-base outline-none transition-shadow placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive',
-            value && 'border-foreground/30',
-          )}
+          className={cn('h-14 w-full rounded-xl bg-transparent pr-12 pl-12 text-lg outline-none placeholder:text-muted-foreground', showUnpicked && 'text-destructive')}
         />
         {text && (
           <button
@@ -116,7 +104,7 @@ export function PlaceInput({ label, icon, value, onChange, placeholder, recent, 
               onChange(null)
               setOpen(true)
             }}
-            className="absolute top-1/2 right-1.5 flex size-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted"
+            className="absolute top-1/2 right-1.5 flex size-11 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
           >
             <X className="size-4" />
           </button>
@@ -125,12 +113,12 @@ export function PlaceInput({ label, icon, value, onChange, placeholder, recent, 
         {open && (
           <CommandList
             onMouseDown={(e) => e.preventDefault()}
-            className="absolute z-40 mt-1 max-h-72 w-full rounded-xl border bg-popover p-1 shadow-lg"
+            className="absolute z-40 mt-1 max-h-72 w-full rounded-xl bg-popover p-1 shadow-[0_4px_16px_rgba(0,0,0,0.25)]"
           >
             {!typing && allowCurrentLocation && (
               <CommandGroup>
-                <CommandItem value="__current" onSelect={useMyLocation} className="min-h-11 gap-3">
-                  {locating ? <Loader2 className="size-4 animate-spin" /> : <LocateFixed className="size-4 text-sky-500" />}
+                <CommandItem value="__current" onSelect={useMyLocation} className="min-h-14 gap-3">
+                  {locating ? <Loader2 className="size-5 animate-spin" /> : <LocateFixed className="size-5 text-primary" />}
                   <span className="font-medium">Use my current location</span>
                 </CommandItem>
               </CommandGroup>
@@ -138,21 +126,21 @@ export function PlaceInput({ label, icon, value, onChange, placeholder, recent, 
             {!typing && recent.length > 0 && (
               <CommandGroup heading="Recent">
                 {recent.map((place) => (
-                  <CommandItem key={place.label} value={`recent-${place.label}`} onSelect={() => pick(place)} className="min-h-11 gap-3">
-                    <Clock className="size-4 text-muted-foreground" />
+                  <CommandItem key={place.label} value={`recent-${place.label}`} onSelect={() => pick(place)} className="min-h-14 gap-3">
+                    <Clock className="size-5 text-muted-foreground" />
                     <PlaceRow place={place} />
                   </CommandItem>
                 ))}
               </CommandGroup>
             )}
             {!typing && recent.length === 0 && !allowCurrentLocation && (
-              <p className="px-3 py-4 text-sm text-muted-foreground">Type a city or address.</p>
+              <p className="px-3 py-4 text-base text-muted-foreground">Type a city or address.</p>
             )}
             {typing && (
               <CommandGroup>
                 {search.data?.map((place) => (
-                  <CommandItem key={`${place.label}-${place.lat}`} value={place.label} onSelect={() => pick(place)} className="min-h-11 gap-3">
-                    <MapPin className="size-4 text-muted-foreground" />
+                  <CommandItem key={`${place.label}-${place.lat}`} value={place.label} onSelect={() => pick(place)} className="min-h-14 gap-3">
+                    <MapPin className="size-5 text-muted-foreground" />
                     <PlaceRow place={place} />
                   </CommandItem>
                 ))}
@@ -171,7 +159,7 @@ export function PlaceInput({ label, icon, value, onChange, placeholder, recent, 
         )}
       </CommandPrimitive>
 
-      {showUnpicked && <p className="text-xs text-destructive">Pick a place from the list.</p>}
+      {showUnpicked && <p className="px-4 pb-2 text-base text-destructive">Pick a place from the list.</p>}
     </div>
   )
 }

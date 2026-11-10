@@ -1,38 +1,40 @@
 import { Info } from 'lucide-react'
 import type { PlanResponse } from '@/api/types'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { CheckpointTimeline } from './CheckpointTimeline'
-import { RecommendationBanner } from './RecommendationBanner'
 import { RouteCard } from './RouteCard'
+import { RouteDetails } from './RouteDetails'
+import { Verdict } from './Verdict'
 
 interface ResultsPanelProps {
   plan: PlanResponse
   selectedRouteId: string
+  loadLb?: number
   onSelectRoute: (id: string) => void
   onSelectCheckpoint: (routeId: string, index: number) => void
 }
 
-export function ResultsPanel({ plan, selectedRouteId, onSelectRoute, onSelectCheckpoint }: ResultsPanelProps) {
+export function ResultsPanel({ plan, selectedRouteId, loadLb, onSelectRoute, onSelectCheckpoint }: ResultsPanelProps) {
   const selected = plan.routes.find((r) => r.id === selectedRouteId) ?? plan.routes[0]
 
   return (
-    <div className="space-y-5">
-      <RecommendationBanner plan={plan} />
+    <div className="space-y-7">
+      <Verdict plan={plan} />
 
       {plan.notes.map((note) => (
-        <Alert key={note}>
-          <Info />
-          <AlertDescription>{note}</AlertDescription>
-        </Alert>
+        <p key={note} className="flex items-start gap-2 text-base">
+          <Info className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden /> {note}
+        </p>
       ))}
 
-      <div role="radiogroup" aria-label="Route options" className="space-y-3">
-        {plan.routes.map((route) => (
-          <RouteCard key={route.id} route={route} selected={route.id === selected.id} onSelect={() => onSelectRoute(route.id)} />
-        ))}
-      </div>
+      <section aria-label="Compare routes" className="space-y-2">
+        <h3 className="text-lg font-medium">Routes</h3>
+        <div role="radiogroup" aria-label="Route options" className="-mx-3 space-y-1">
+          {plan.routes.map((route) => (
+            <RouteCard key={route.id} route={route} selected={route.id === selected.id} onSelect={() => onSelectRoute(route.id)} />
+          ))}
+        </div>
+      </section>
 
-      <CheckpointTimeline key={selected.id} route={selected} onSelectCheckpoint={onSelectCheckpoint} />
+      <RouteDetails key={selected.id} route={selected} loadLb={loadLb} onSelectCheckpoint={onSelectCheckpoint} />
     </div>
   )
 }

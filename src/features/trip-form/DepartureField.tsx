@@ -20,7 +20,7 @@ export function DepartureField({ value, onChange }: DepartureFieldProps) {
 
   return (
     <div className="space-y-2">
-      <p className="text-sm font-semibold">When are you leaving?</p>
+      <p className="text-base font-medium text-muted-foreground">When are you leaving?</p>
       <Segmented options={[...MODES]} value={value.mode} onChange={choose} label="Departure choices" />
       {value.mode === 'custom' && (
         <div className="space-y-1.5">
@@ -32,11 +32,11 @@ export function DepartureField({ value, onChange }: DepartureFieldProps) {
             type="datetime-local"
             value={value.local}
             onChange={(e) => onChange({ mode: 'custom', local: e.target.value })}
-            className="h-12 w-full rounded-xl border bg-background px-3 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="h-14 w-full rounded-xl bg-muted px-3 text-lg outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           />
         </div>
       )}
-      <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+      <p className="flex items-center gap-1.5 text-base text-muted-foreground">
         <CalendarClock className="size-4" /> {describeDeparture(value)}
       </p>
     </div>

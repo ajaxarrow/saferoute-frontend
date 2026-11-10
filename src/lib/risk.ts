@@ -14,11 +14,11 @@ export interface RiskStyle {
 
 /** Single source of truth for how a risk level looks. Colour is never the only signal: label + icon too. */
 export const RISK: Record<RiskLevel, RiskStyle> = {
-  LOW: { label: 'Low', color: '#16a34a', onColor: '#ffffff', icon: CircleCheck, rank: 0 },
-  MODERATE: { label: 'Moderate', color: '#eab308', onColor: '#1c1917', icon: CircleAlert, rank: 1 },
-  HIGH: { label: 'High', color: '#f97316', onColor: '#1c1917', icon: TriangleAlert, rank: 2 },
-  SEVERE: { label: 'Severe', color: '#dc2626', onColor: '#ffffff', icon: OctagonAlert, rank: 3 },
-  NO_TRAVEL: { label: 'No Travel', color: '#7e22ce', onColor: '#ffffff', icon: Ban, rank: 4 },
+  LOW: { label: 'Low', color: '#188038', onColor: '#ffffff', icon: CircleCheck, rank: 0 },
+  MODERATE: { label: 'Moderate', color: '#fbbc04', onColor: '#202124', icon: CircleAlert, rank: 1 },
+  HIGH: { label: 'High', color: '#fa7b17', onColor: '#202124', icon: TriangleAlert, rank: 2 },
+  SEVERE: { label: 'Severe', color: '#d93025', onColor: '#ffffff', icon: OctagonAlert, rank: 3 },
+  NO_TRAVEL: { label: 'No Travel', color: '#8430ce', onColor: '#ffffff', icon: Ban, rank: 4 },
 }
 
 export const RISK_ORDER: RiskLevel[] = ['LOW', 'MODERATE', 'HIGH', 'SEVERE', 'NO_TRAVEL']

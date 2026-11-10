@@ -13,13 +13,13 @@ export function RiskBadge({ level, size = 'md', className }: RiskBadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-full font-semibold whitespace-nowrap',
-        size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-sm',
+        'inline-flex items-center gap-1 rounded-full font-medium whitespace-nowrap',
+        size === 'sm' ? 'px-2 py-0.5 text-sm' : 'px-3 py-1 text-base',
         className,
       )}
       style={{ backgroundColor: color, color: onColor }}
     >
-      <Icon className={size === 'sm' ? 'size-3' : 'size-4'} aria-hidden />
+      <Icon className={size === 'sm' ? 'size-4' : 'size-5'} aria-hidden />
       {label}
     </span>
   )

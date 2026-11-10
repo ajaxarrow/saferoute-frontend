@@ -1,4 +1,4 @@
-import { AlertCircle, ArrowUpDown, Loader2, MapPin, Navigation, Search } from 'lucide-react'
+import { AlertCircle, ArrowUpDown, Circle, Loader2, MapPin, Search } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import type { ApiError } from '@/api/client'
 import type { IntervalMiles, Place, PlanRequest } from '@/api/types'
@@ -70,41 +70,43 @@ export function TripForm({ onSubmit, isLoading, error, onPlacesChange, routeChec
 
   return (
     <form onSubmit={submit} className="space-y-6" noValidate>
-      <div className="space-y-4">
-        <PlaceInput
-          key={`from-${swapCount}`}
-          label="From"
-          icon={<Navigation className="size-4" />}
-          value={origin}
-          onChange={setOrigin}
-          onPicked={remember}
-          recent={recent}
-          placeholder="City or address"
-          allowCurrentLocation
-        />
-        <PlaceInput
-          key={`to-${swapCount}`}
-          label="To"
-          icon={<MapPin className="size-4" />}
-          value={destination}
-          onChange={setDestination}
-          onPicked={remember}
-          recent={recent}
-          placeholder="City or address"
-          action={
-            <button
-              type="button"
-              onClick={swap}
-              className="flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-            >
-              <ArrowUpDown className="size-4" /> Swap
-            </button>
-          }
-        />
+      <div className="flex items-center gap-1">
+        <div className="min-w-0 flex-1 rounded-2xl border bg-card p-1 shadow-sm">
+          <PlaceInput
+            key={`from-${swapCount}`}
+            label="From"
+            icon={<Circle className="size-5 text-primary" aria-hidden />}
+            value={origin}
+            onChange={setOrigin}
+            onPicked={remember}
+            recent={recent}
+            placeholder="Starting point"
+            allowCurrentLocation
+          />
+          <div className="mx-12 h-px bg-border" />
+          <PlaceInput
+            key={`to-${swapCount}`}
+            label="To"
+            icon={<MapPin className="size-5 text-destructive" aria-hidden />}
+            value={destination}
+            onChange={setDestination}
+            onPicked={remember}
+            recent={recent}
+            placeholder="Destination"
+          />
+        </div>
+        <button
+          type="button"
+          onClick={swap}
+          aria-label="Swap"
+          className="flex size-12 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          <ArrowUpDown className="size-6" />
+        </button>
       </div>
 
       {routeCheck?.isLoading && (
-        <p role="status" className="-mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+        <p role="status" className="-mt-3 flex items-center gap-2 text-base text-muted-foreground">
           <Loader2 className="size-4 animate-spin" /> Finding truck routes…
         </p>
       )}
@@ -127,7 +129,7 @@ export function TripForm({ onSubmit, isLoading, error, onPlacesChange, routeChec
       )}
 
       <div className="sticky bottom-0 z-10 -mx-4 space-y-2 bg-background/95 px-4 pt-3 pb-3 backdrop-blur md:-mx-5 md:px-5">
-        <Button type="submit" disabled={Boolean(blocker) || isLoading} className="h-14 w-full gap-2 rounded-xl text-base font-semibold">
+        <Button type="submit" disabled={Boolean(blocker) || isLoading} className="h-14 w-full gap-2 rounded-full text-lg font-medium">
           {isLoading ? (
             <>
               <Loader2 className="size-5 animate-spin" /> Checking routes &amp; weather…
@@ -138,7 +140,7 @@ export function TripForm({ onSubmit, isLoading, error, onPlacesChange, routeChec
             </>
           )}
         </Button>
-        {blocker && !isLoading && <p className="text-center text-sm text-muted-foreground">{blocker}</p>}
+        {blocker && !isLoading && <p className="text-center text-base text-muted-foreground">{blocker}</p>}
       </div>
     </form>
   )

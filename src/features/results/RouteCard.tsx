@@ -1,8 +1,7 @@
-import { Clock, Flag, Route as RouteIcon } from 'lucide-react'
 import { useId } from 'react'
 import type { PlannedRoute, RouteTag } from '@/api/types'
-import { Badge } from '@/components/ui/badge'
 import { formatDuration, formatEta, formatMiles } from '@/lib/format'
+import { routeShortName } from '@/lib/hazards'
 import { RISK } from '@/lib/risk'
 import { cn } from '@/lib/utils'
 import { RiskBadge } from './RiskBadge'
@@ -16,6 +15,7 @@ interface RouteCardProps {
   onSelect: () => void
 }
 
+/** One row of the route list, in the order a driver decides: how long, when I arrive, how bad is the weather. */
 export function RouteCard({ route, selected, onSelect }: RouteCardProps) {
   const summaryId = useId()
   const { summary } = route
@@ -31,48 +31,44 @@ export function RouteCard({ route, selected, onSelect }: RouteCardProps) {
       aria-describedby={summaryId}
       onClick={onSelect}
       className={cn(
-        'w-full rounded-2xl border bg-card p-4 text-left transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
-        selected ? 'border-foreground shadow-md ring-1 ring-foreground' : 'hover:border-foreground/40',
+        'w-full space-y-2 rounded-xl px-3 py-3 text-left transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+        selected ? 'bg-primary/10 ring-1 ring-primary' : 'hover:bg-muted',
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-base font-semibold">{route.label}</p>
-          {route.via && <p className="truncate text-sm text-muted-foreground">{route.via}</p>}
+          <p className="truncate text-lg font-medium">
+            {route.label}
+            {routeShortName(route.via) && <span className="font-normal text-muted-foreground"> · {routeShortName(route.via)}</span>}
+          </p>
+          <p className="text-base text-muted-foreground tabular">
+            {formatMiles(summary.total_miles)}
+            {last && ` · arrive ${formatEta(last.eta_utc, last.tz)}`}
+          </p>
         </div>
-        <RiskBadge level={summary.worst} />
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <span className="text-xl font-medium tabular">{formatDuration(summary.duration_s)}</span>
+          <RiskBadge level={summary.worst} size="sm" />
+        </div>
       </div>
 
-      {route.tags.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {route.tags.map((tag) => (
-            <Badge key={tag} variant={tag === 'recommended' ? 'default' : 'secondary'}>
-              {TAG_LABEL[tag]}
-            </Badge>
-          ))}
-        </div>
-      )}
-
-      <div id={summaryId} className="mt-3 space-y-2.5">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-          <span className="inline-flex items-center gap-1.5 font-semibold">
-            <Clock className="size-4 text-muted-foreground" aria-hidden /> {formatDuration(summary.duration_s)}
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <RouteIcon className="size-4 text-muted-foreground" aria-hidden /> {formatMiles(summary.total_miles)}
-          </span>
-          {last && (
-            <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-              <Flag className="size-4" aria-hidden /> Arrive {formatEta(last.eta_utc, last.tz)}
-            </span>
-          )}
-        </div>
+      <div id={summaryId} className="space-y-1.5">
         <RiskBar milesByLevel={summary.miles_by_level} />
-        <p className="text-sm text-muted-foreground">
-          {hazards.length === 0
-            ? 'No High, Severe or No Travel stretches.'
-            : hazards.map((l) => `${RISK[l].label} ${formatMiles(summary.miles_by_level[l])}`).join(' · ')}
-        </p>
+        {hazards.length > 0 && (
+          <p className="text-base text-muted-foreground">{hazards.map((l) => `${RISK[l].label} ${formatMiles(summary.miles_by_level[l])}`).join(' · ')}</p>
+        )}
+        {route.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {route.tags.map((tag) => (
+              <span
+                key={tag}
+                className={cn('rounded-full px-2.5 py-0.5 text-sm font-medium', tag === 'recommended' ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground')}
+              >
+                {TAG_LABEL[tag]}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </button>
   )
