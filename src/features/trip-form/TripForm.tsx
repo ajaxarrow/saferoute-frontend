@@ -1,4 +1,4 @@
-import { AlertCircle, ArrowUpDown, Loader2, Search } from 'lucide-react'
+import { AlertCircle, ArrowUpDown, Loader2, Search, ShieldAlert } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import type { ApiError } from '@/api/client'
 import type { IntervalMiles, Place, PlanRequest } from '@/api/types'
@@ -70,13 +70,19 @@ export function TripForm({ onSubmit, isLoading, error, onPlacesChange, routeChec
 
   return (
     <form onSubmit={submit} className="space-y-6" noValidate>
-      <div className="flex items-center gap-1">
-        <div className="relative min-w-0 flex-1 rounded-lg border-2 border-input bg-card p-1">
-          <span aria-hidden className="pointer-events-none absolute top-[2.75rem] left-[1.6rem] z-10 h-[2.4rem] w-1.5 rounded-full bg-foreground" />
+      <div>
+        <h2 className="text-xl font-semibold">Plan a trip</h2>
+        <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
+          <ShieldAlert className="size-4 shrink-0" aria-hidden /> Plan before you drive. Don't use while driving.
+        </p>
+      </div>
+      <div className="flex items-stretch gap-2">
+        <div className="relative min-w-0 flex-1 rounded-xl border border-input bg-card p-1 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background">
+          <span aria-hidden className="pointer-events-none absolute top-[2.9rem] left-[1.55rem] z-10 h-[1.9rem] border-l-2 border-dotted border-muted-foreground/70" />
           <PlaceInput
             key={`from-${swapCount}`}
             label="From"
-            icon={<span className="block size-5 rounded-full border-[4px] border-foreground bg-card" aria-hidden />}
+            icon={<span className="block size-3.5 rounded-full border-[3px] border-primary bg-card" aria-hidden />}
             value={origin}
             onChange={setOrigin}
             onPicked={remember}
@@ -84,11 +90,11 @@ export function TripForm({ onSubmit, isLoading, error, onPlacesChange, routeChec
             placeholder="Starting point"
             allowCurrentLocation
           />
-          <div className="mx-12 h-0.5 bg-border" />
+          <div className="mx-4 h-px bg-border" />
           <PlaceInput
             key={`to-${swapCount}`}
             label="To"
-            icon={<span className="block size-5 rounded-full border-[4px] border-foreground bg-foreground" aria-hidden />}
+            icon={<span className="block size-3.5 rounded-full border-[3px] border-primary bg-primary" aria-hidden />}
             value={destination}
             onChange={setDestination}
             onPicked={remember}
@@ -100,9 +106,9 @@ export function TripForm({ onSubmit, isLoading, error, onPlacesChange, routeChec
           type="button"
           onClick={swap}
           aria-label="Swap"
-          className="flex size-12 shrink-0 items-center justify-center rounded-md border-2 border-input/60 hover:bg-muted"
+          className="flex h-12 w-12 shrink-0 items-center justify-center self-center rounded-xl border bg-card transition-colors hover:bg-muted"
         >
-          <ArrowUpDown className="size-6" />
+          <ArrowUpDown className="size-5" />
         </button>
       </div>
 
@@ -129,8 +135,8 @@ export function TripForm({ onSubmit, isLoading, error, onPlacesChange, routeChec
         </Alert>
       )}
 
-      <div className="sticky bottom-0 z-10 -mx-4 space-y-2 bg-background/95 px-4 pt-3 pb-3 backdrop-blur md:-mx-5 md:px-5">
-        <Button type="submit" disabled={Boolean(blocker) || isLoading} className="h-14 w-full gap-2 rounded-md text-xl font-extrabold">
+      <div className="sticky bottom-0 z-10 -mx-5 space-y-2 border-t bg-card px-5 pt-3 pb-3 min-[1440px]:-mx-6 min-[1440px]:px-6">
+        <Button type="submit" disabled={Boolean(blocker) || isLoading} className="h-14 w-full gap-2 rounded-xl bg-primary text-lg font-semibold text-primary-foreground hover:bg-[var(--primary-hover)] disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100">
           {isLoading ? (
             <>
               <Loader2 className="size-5 animate-spin" /> Checking routes &amp; weather…
@@ -141,7 +147,7 @@ export function TripForm({ onSubmit, isLoading, error, onPlacesChange, routeChec
             </>
           )}
         </Button>
-        {blocker && !isLoading && <p className="text-center text-base text-muted-foreground">{blocker}</p>}
+        {blocker && !isLoading && <p className="text-center text-sm text-muted-foreground">{blocker}</p>}
       </div>
     </form>
   )

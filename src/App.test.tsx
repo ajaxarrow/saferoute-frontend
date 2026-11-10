@@ -72,7 +72,7 @@ describe('App', () => {
     render(<App />)
     await fillAndSubmit()
     expect(await screen.findByRole('heading', { name: /take route 2/i })).toBeInTheDocument()
-    expect(within(screen.getByRole('radiogroup', { name: 'Route options' })).getAllByRole('radio')).toHaveLength(3)
+    expect(within(screen.getByRole('radiogroup', { name: 'Route comparison' })).getAllByRole('radio')).toHaveLength(3)
     expect(screen.getByLabelText('Forecast hour')).toBeInTheDocument()
     expect(await screen.findByTestId('map')).toBeInTheDocument()
   })
@@ -82,7 +82,7 @@ describe('App', () => {
     render(<App />)
     await fillAndSubmit()
     expect(await screen.findByText('No truck route found between these places.')).toBeInTheDocument()
-    expect(screen.queryByRole('radiogroup', { name: 'Route options' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('radiogroup', { name: 'Route comparison' })).not.toBeInTheDocument()
   })
 
   it('lets the driver go back and edit the trip after results arrive', async () => {

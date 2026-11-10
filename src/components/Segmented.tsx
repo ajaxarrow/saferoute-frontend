@@ -19,7 +19,7 @@ interface SegmentedProps<T extends string | number> {
 /** Single-choice chips (radio semantics) with 44px+ targets. */
 export function Segmented<T extends string | number>({ options, value, onChange, label, className }: SegmentedProps<T>) {
   return (
-    <div role="radiogroup" aria-label={label} className={cn('flex flex-wrap gap-2', className)}>
+    <div role="radiogroup" aria-label={label} className={cn('flex gap-0 rounded-xl bg-muted p-1', className)}>
       {options.map((option) => {
         const checked = option.value === value
         return (
@@ -31,8 +31,8 @@ export function Segmented<T extends string | number>({ options, value, onChange,
             aria-label={option.name}
             onClick={() => onChange(option.value)}
             className={cn(
-              'min-h-12 flex-1 rounded-md border-2 px-3 text-base font-bold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
-              checked ? 'border-foreground bg-foreground text-background' : 'border-input/60 text-foreground hover:bg-muted',
+              'min-h-12 min-w-0 flex-1 rounded-lg px-2 text-base font-medium transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+              checked ? 'bg-card font-semibold text-primary shadow-sm ring-1 ring-border' : 'text-muted-foreground hover:text-foreground',
             )}
           >
             {option.label}

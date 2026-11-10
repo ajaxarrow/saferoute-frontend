@@ -23,7 +23,7 @@ const cellColorFor = (hour: number): ExpressionSpecification => [
 ]
 
 // Calm weather is drawn too (a clear green band); elevated risk is much heavier so trouble jumps out.
-const cellOpacityFor = (hour: number): ExpressionSpecification => ['match', ['get', hourProperty(hour)], 0, 0.55, 0.9]
+const cellOpacityFor = (hour: number): ExpressionSpecification => ['match', ['get', hourProperty(hour)], 0, 0.3, 0.55]
 
 /** Adds the heatmap (a soft risk-coloured band along the trip corridor) below `beforeId` so route lines stay on top. Safe to call after each style load. */
 export function addHeatmapLayers(map: MapLibreMap, beforeId: string): void {
@@ -42,12 +42,12 @@ export function addHeatmapLayers(map: MapLibreMap, beforeId: string): void {
         'heatmap-color': [
           'interpolate', ['linear'], ['heatmap-density'],
           0, CLEAR,
-          0.1, 'rgba(251,188,4,0.7)',
-          0.35, 'rgba(250,123,23,0.85)',
-          0.6, 'rgba(217,48,37,0.92)',
-          0.85, 'rgba(132,48,206,0.95)',
+          0.1, 'rgba(234,179,8,0.7)',
+          0.35, 'rgba(249,115,22,0.85)',
+          0.6, 'rgba(220,38,38,0.9)',
+          0.85, 'rgba(127,29,29,0.95)',
         ],
-        'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 7, 0.95, 9.5, 0],
+        'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 7, 0.6, 9.5, 0],
       },
     },
     beforeId,

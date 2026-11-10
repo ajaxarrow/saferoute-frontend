@@ -19,6 +19,7 @@ function setup(routeIndex = 0, hour = 0, extra: Partial<React.ComponentProps<typ
     onVisibleChange: vi.fn(),
     playing: false,
     onPlayingChange: vi.fn(),
+    defaultExpanded: true,
     ...extra,
   }
   render(<TripWeatherCard {...props} />)

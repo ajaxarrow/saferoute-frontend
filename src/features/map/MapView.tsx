@@ -1,10 +1,10 @@
 import { Map as MapLibreMap, Marker, NavigationControl, Popup, type MapLayerMouseEvent } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import type { Checkpoint, Place, PlanResponse, PlannedRoute, RoutePreview } from '@/api/types'
 import { checkpointPopupHtml } from './checkpointPopup'
 import { addHeatmapLayers, setHeatmapData, setHeatmapHour, setHeatmapRoute, setHeatmapVisible } from './heatmapLayer'
-import { addRouteLayers, LAYER, setPreviewData, setRouteData } from './mapLayers'
+import { addRouteLayers, LAYER, setPreviewData, setRouteData, setSelectedCheckpoint } from './mapLayers'
 import { addEndpointMarkers, addPlanMarkers, createTruckMarker } from './mapMarkers'
 import { mapStyleUrl, type Theme } from './mapStyle'
 import { boundsOf, boundsOfPoints } from './routeLayers'
@@ -34,25 +34,34 @@ interface MapViewProps {
   onSelectRoute: (id: string) => void
   theme: Theme
   fitPadding: FitPadding
+  /** Padding for the opening view of the US, before any trip exists. */
+  initialPadding: FitPadding
   focus?: MapFocus | null
   heatmapHour: number
   heatmapVisible: boolean
   /** Where the truck is at the forecast hour being shown. */
   truckPosition?: [number, number]
+  /** A checkpoint was clicked or tapped on the map. */
+  onCheckpointClick?: (routeId: string, index: number) => void
+  /** Show the map popup for a focused checkpoint (desktop/tablet). Otherwise the app shows its own details sheet. */
+  checkpointPopup?: boolean
+  /** Checkpoint to highlight, or null. */
+  selectedCheckpoint?: number | null
 }
 
-const US_CENTER: [number, number] = [-98.5, 39.5]
+// Continental US, [west, south, east, north].
+const US_BOUNDS: [[number, number], [number, number]] = [[-125.5, 24], [-66, 49.8]]
 
-export function MapView({ plan, origin, destination, preview, selectedRouteId, onSelectRoute, theme, fitPadding, focus, heatmapHour, heatmapVisible, truckPosition }: MapViewProps) {
+export const MapView = memo(function MapView({ plan, origin, destination, preview, selectedRouteId, onSelectRoute, theme, fitPadding, initialPadding, focus, heatmapHour, heatmapVisible, truckPosition, onCheckpointClick, checkpointPopup = true, selectedCheckpoint = null }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
   const popupRef = useRef<Popup | null>(null)
   const [styleVersion, setStyleVersion] = useState(0) // bumps whenever a (new) style finished loading
 
   // Latest props for event handlers registered once at map creation.
-  const live = useRef({ plan, onSelectRoute, theme })
+  const live = useRef({ plan, onSelectRoute, theme, onCheckpointClick, initialPadding })
   useEffect(() => {
-    live.current = { plan, onSelectRoute, theme }
+    live.current = { plan, onSelectRoute, theme, onCheckpointClick, initialPadding }
   })
 
   /** Opens the checkpoint popup, replacing any popup that is already open. */
@@ -68,8 +77,8 @@ export function MapView({ plan, origin, destination, preview, selectedRouteId, o
     const map = new MapLibreMap({
       container: containerRef.current!,
       style: mapStyleUrl(live.current.theme),
-      center: US_CENTER,
-      zoom: 3.4,
+      bounds: US_BOUNDS,
+      fitBoundsOptions: { padding: live.current.initialPadding, maxZoom: 5 },
       attributionControl: { compact: true },
     })
     map.addControl(new NavigationControl({ showCompass: false }), 'top-right')
@@ -85,9 +94,7 @@ export function MapView({ plan, origin, destination, preview, selectedRouteId, o
     })
     map.on('click', LAYER.checkpoints, (e: MapLayerMouseEvent) => {
       const props = e.features?.[0]?.properties
-      const route = live.current.plan?.routes.find((r) => r.id === props?.routeId)
-      const cp = route?.checkpoints[Number(props?.index)]
-      if (route && cp) showPopup(map, route, cp)
+      if (props) live.current.onCheckpointClick?.(props.routeId as string, Number(props.index))
     })
     for (const layer of [LAYER.hit, LAYER.checkpoints]) {
       map.on('mouseenter', layer, () => (map.getCanvas().style.cursor = 'pointer'))
@@ -200,8 +207,13 @@ export function MapView({ plan, origin, destination, preview, selectedRouteId, o
     const cp = route?.checkpoints[focus.index]
     if (!route || !cp) return
     map.flyTo({ center: [cp.lon, cp.lat], zoom: Math.max(map.getZoom(), 7), duration: 700 })
-    showPopup(map, route, cp)
+    if (checkpointPopup) showPopup(map, route, cp)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focus, plan])
 
-  return <div ref={containerRef} className="size-full" />
-}
+  useEffect(() => {
+    if (mapRef.current) setSelectedCheckpoint(mapRef.current, selectedCheckpoint)
+  }, [selectedCheckpoint, selectedId, styleVersion])
+
+  return <div ref={containerRef} className="size-full" role="application" aria-label="Route map" />
+})

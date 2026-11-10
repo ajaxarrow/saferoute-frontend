@@ -12,6 +12,7 @@ export const LAYER = {
   casing: 'selected-casing',
   risk: 'selected-risk-line',
   checkpoints: 'checkpoints',
+  checkpointSelected: 'checkpoint-selected',
 } as const
 
 const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] }
@@ -56,7 +57,7 @@ export function addRouteLayers(map: MapLibreMap): void {
     source: SOURCE.routes,
     filter: ['!', ['get', 'isSelected']],
     layout: line,
-    paint: { 'line-color': '#9aa0a6', 'line-width': 6, 'line-opacity': 1 },
+    paint: { 'line-color': '#64748b', 'line-width': 4, 'line-opacity': 0.6 },
   })
   map.addLayer({
     id: LAYER.casing,
@@ -64,26 +65,45 @@ export function addRouteLayers(map: MapLibreMap): void {
     source: SOURCE.routes,
     filter: ['get', 'isSelected'],
     layout: line,
-    paint: { 'line-color': '#ffffff', 'line-width': 11, 'line-opacity': 0.95 },
+    paint: { 'line-color': '#ffffff', 'line-width': 10, 'line-opacity': 1 },
   })
   map.addLayer({
     id: LAYER.risk,
     type: 'line',
     source: SOURCE.risk,
     layout: { 'line-join': 'round', 'line-cap': 'butt' },
-    paint: { 'line-color': ['get', 'color'], 'line-width': 7 },
+    paint: { 'line-color': ['get', 'color'], 'line-width': 6 },
   })
+  // Checkpoints: small dots filled with the risk colour and a white stroke.
   map.addLayer({
     id: LAYER.checkpoints,
     type: 'circle',
     source: SOURCE.checkpoints,
     paint: {
-      'circle-color': '#ffffff',
-      'circle-radius': ['case', ['get', 'severe'], 9, 7],
-      'circle-stroke-color': ['get', 'color'],
-      'circle-stroke-width': 4,
+      'circle-color': ['get', 'color'],
+      'circle-radius': ['case', ['get', 'severe'], 6.5, 5],
+      'circle-stroke-color': '#ffffff',
+      'circle-stroke-width': 2,
     },
   })
+  // The selected checkpoint is larger, with a navy ring.
+  map.addLayer({
+    id: LAYER.checkpointSelected,
+    type: 'circle',
+    source: SOURCE.checkpoints,
+    filter: ['==', ['get', 'index'], -1],
+    paint: {
+      'circle-color': ['get', 'color'],
+      'circle-radius': 10,
+      'circle-stroke-color': '#14346b',
+      'circle-stroke-width': 3,
+    },
+  })
+}
+
+/** Marks one checkpoint (by index on the selected route) as selected; null clears it. */
+export function setSelectedCheckpoint(map: MapLibreMap, index: number | null): void {
+  if (map.getLayer(LAYER.checkpointSelected)) map.setFilter(LAYER.checkpointSelected, ['==', ['get', 'index'], index ?? -1])
 }
 
 function setData(map: MapLibreMap, id: string, data: GeoJSON.GeoJSON) {

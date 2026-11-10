@@ -78,7 +78,7 @@ export function PlaceInput({ label, icon, value, onChange, placeholder, recent, 
         onBlur={(e) => {
           if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false)
         }}
-        className="relative rounded-md focus-within:bg-muted focus-within:ring-2 focus-within:ring-ring"
+        className="relative rounded-lg"
       >
         <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2">{icon}</span>
         <CommandPrimitive.Input
@@ -93,7 +93,7 @@ export function PlaceInput({ label, icon, value, onChange, placeholder, recent, 
           placeholder={placeholder}
           autoComplete="off"
           aria-invalid={showUnpicked || undefined}
-          className={cn('h-14 w-full rounded-md bg-transparent pr-12 pl-12 text-lg font-semibold outline-none placeholder:font-normal placeholder:text-muted-foreground', showUnpicked && 'text-destructive')}
+          className={cn('h-14 w-full rounded-lg bg-transparent pr-12 pl-12 text-base font-medium outline-none placeholder:font-normal placeholder:text-muted-foreground', showUnpicked && 'text-destructive')}
         />
         {text && (
           <button
@@ -113,7 +113,7 @@ export function PlaceInput({ label, icon, value, onChange, placeholder, recent, 
         {open && (
           <CommandList
             onMouseDown={(e) => e.preventDefault()}
-            className="absolute z-40 mt-1 max-h-72 w-full rounded-lg border-2 border-foreground bg-popover p-1"
+            className="absolute z-40 mt-1 max-h-72 w-full rounded-xl border bg-popover p-1 shadow-float"
           >
             {!typing && allowCurrentLocation && (
               <CommandGroup>

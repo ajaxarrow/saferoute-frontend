@@ -32,9 +32,9 @@ export function RouteLine({ route, truckProgress, className }: RouteLineProps) {
       aria-label={`${route.label}, ${formatMiles(total)}, ${route.checkpoints.length} stations${
         rough.length ? `. Rough stretches: ${rough.map((r) => `${RISK[r.risk].label} from mile ${Math.round(r.from)} to ${Math.round(r.to)}`).join(', ')}` : '. Low risk all the way'
       }${truckProgress != null ? `. Truck is ${Math.round(truckProgress * 100)} percent along.` : ''}`}
-      className={cn('relative h-8', className)}
+      className={cn('relative h-7', className)}
     >
-      <div className="absolute inset-x-2.5 top-1/2 h-3 -translate-y-1/2">
+      <div className="absolute inset-x-2.5 top-1/2 h-2 -translate-y-1/2">
         <div className="flex size-full overflow-hidden rounded-full">
           {ranges.map((r, i) => (
             <span key={i} style={{ width: `${((r.to - r.from) / total) * 100}%`, backgroundColor: RISK[r.risk].color }} />
@@ -44,7 +44,7 @@ export function RouteLine({ route, truckProgress, className }: RouteLineProps) {
           <span
             key={c.index}
             data-station
-            className="absolute top-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-foreground bg-card"
+            className="absolute top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border-[1.5px] border-foreground bg-card"
             style={{ left: `${(c.mile / total) * 100}%` }}
           />
         ))}
@@ -52,15 +52,15 @@ export function RouteLine({ route, truckProgress, className }: RouteLineProps) {
           <span
             data-truck
             aria-hidden
-            className="absolute -top-2.5 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-card bg-foreground text-background transition-[left] duration-300 ease-out motion-reduce:transition-none"
+            className="absolute -top-3 flex size-7 -translate-x-1/2 items-center justify-center rounded-full border-2 border-card bg-primary text-primary-foreground shadow-sm transition-[left] duration-300 ease-out motion-reduce:transition-none"
             style={{ left: `${Math.min(Math.max(truckProgress, 0), 1) * 100}%` }}
           >
             <Truck className="size-4" />
           </span>
         )}
       </div>
-      <span data-terminal className="absolute top-1/2 left-0 size-5 -translate-y-1/2 rounded-full border-[3px] border-foreground bg-card" />
-      <span data-terminal className="absolute top-1/2 right-0 size-5 -translate-y-1/2 rounded-full border-[3px] border-foreground bg-foreground" />
+      <span data-terminal className="absolute top-1/2 left-0 size-4 -translate-y-1/2 rounded-full border-[3px] border-primary bg-card" />
+      <span data-terminal className="absolute top-1/2 right-0 size-4 -translate-y-1/2 rounded-full border-[3px] border-primary bg-primary" />
     </div>
   )
 }

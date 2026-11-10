@@ -8,8 +8,8 @@ import { RISK } from '@/lib/risk'
 function Fact({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
-      <dt className="text-sm text-background/75">{label}</dt>
-      <dd className="text-xl leading-tight font-bold whitespace-nowrap tabular">{value}</dd>
+      <dt className="text-xs text-primary-foreground/80">{label}</dt>
+      <dd className="text-lg leading-tight font-semibold whitespace-nowrap tabular">{value}</dd>
     </div>
   )
 }
@@ -27,35 +27,40 @@ export function Verdict({ plan }: { plan: PlanResponse }) {
   const roads = routeShortName(best.via)
 
   return (
-    <section aria-live="polite" className="space-y-4 rounded-lg bg-foreground p-4 text-background">
+    <section aria-live="polite" className="space-y-4 rounded-2xl bg-primary p-5 text-primary-foreground">
       <div className="flex items-center gap-3">
         <Roundel n={best.label.replace(/\D+/g, '') || '1'} size="lg" inverse />
         <div className="min-w-0">
-          <h2 className="text-3xl leading-none font-extrabold">{blocked ? `Least-bad: ${best.label}` : `Take ${best.label}`}</h2>
-          {roads && <p className="mt-1 truncate text-lg text-background/80">{roads}</p>}
+          <p className="mb-0.5 text-sm font-medium text-primary-foreground/85">Recommended</p>
+          <h2 className="text-xl leading-tight font-semibold !text-primary-foreground">{blocked ? `Least-bad: ${best.label}` : `Take ${best.label}`}</h2>
+          {roads && <p className="mt-1 truncate text-base text-primary-foreground/85">{roads}</p>}
         </div>
       </div>
 
       {blocked && (
-        <p className="flex items-center gap-2 rounded-md bg-destructive px-3 py-2 text-lg font-bold text-white">
-          <Ban className="size-6 shrink-0" aria-hidden /> Do not depart as planned
+        <p className="flex items-center gap-2 rounded-md bg-destructive px-3 py-2 text-base font-semibold text-white">
+          <Ban className="size-5 shrink-0" aria-hidden /> Do not depart as planned
         </p>
       )}
 
-      <dl className="flex flex-wrap gap-x-6 gap-y-2 border-y border-background/25 py-3">
+      <dl className="flex flex-wrap gap-x-7 gap-y-3 text-primary-foreground">
         <Fact label="Drive" value={formatDuration(summary.duration_s)} />
         <Fact label="Distance" value={formatMiles(summary.total_miles)} />
         {last && <Fact label="Arrive" value={formatEta(last.eta_utc, last.tz).replace(/ [A-Z]{2,4}$/, '')} />}
       </dl>
       {last && <p className="sr-only">Arrive {formatEta(last.eta_utc, last.tz)}</p>}
 
-      <p className="flex items-center gap-2.5 text-lg font-bold">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: style.color, color: style.onColor }}>
-          <Icon className="size-5" aria-hidden />
+      <div className="flex items-start gap-2.5 border-t border-primary-foreground/25 pt-4">
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: style.color, color: style.onColor }}>
+          <Icon className="size-4" aria-hidden />
         </span>
-        {rough ? `${style.label} risk for ${formatMiles(summary.miles_by_level[summary.worst])}` : 'Clear: no Moderate or worse weather'}
-      </p>
-      <p className="text-base text-background/85">{plan.recommendation_reason}</p>
+        <div className="min-w-0 space-y-0.5">
+          <p className="text-base leading-snug font-semibold">
+            {rough ? `${style.label} risk for ${formatMiles(summary.miles_by_level[summary.worst])}` : 'Clear: no Moderate or worse weather'}
+          </p>
+          <p className="text-sm text-primary-foreground/85">{plan.recommendation_reason}</p>
+        </div>
+      </div>
     </section>
   )
 }

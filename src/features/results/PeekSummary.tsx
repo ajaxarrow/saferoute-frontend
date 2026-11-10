@@ -1,24 +1,40 @@
 import type { PlannedRoute } from '@/api/types'
-import { formatDuration, formatEta } from '@/lib/format'
+import { Button } from '@/components/ui/button'
+import { formatDuration, formatEta, formatMiles } from '@/lib/format'
 import { routeShortName } from '@/lib/hazards'
 import { RiskBadge } from './RiskBadge'
 
-/** The whole answer in one glance, for the smallest sheet position. */
-export function PeekSummary({ route, isRecommended, onOpen }: { route: PlannedRoute; isRecommended: boolean; onOpen: () => void }) {
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-sm text-muted-foreground">{label}</dt>
+      <dd className="text-lg leading-tight font-semibold whitespace-nowrap tabular">{value}</dd>
+    </div>
+  )
+}
+
+/** The whole answer in one glance, for the smallest sheet position, with a way into the full list. */
+export function PeekSummary({ route, isRecommended, onViewAll }: { route: PlannedRoute; isRecommended: boolean; onViewAll: () => void }) {
   const last = route.checkpoints[route.checkpoints.length - 1]
   return (
-    <button type="button" onClick={onOpen} className="flex min-h-16 w-full items-center gap-3 rounded-lg border-2 border-foreground bg-card p-3 text-left">
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-xl leading-tight font-extrabold">
-          {isRecommended ? 'Take ' : ''}
-          {route.label} <span className="font-normal text-muted-foreground">{routeShortName(route.via)}</span>
-        </span>
-        <span className="block text-base text-muted-foreground tabular">
-          {formatDuration(route.summary.duration_s)}
-          {last && ` · arrive ${formatEta(last.eta_utc, last.tz)}`}
-        </span>
-      </span>
-      <RiskBadge level={route.summary.worst} />
-    </button>
+    <div className="space-y-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          {isRecommended && <p className="text-sm font-semibold text-primary">Recommended</p>}
+          <p className="truncate text-lg leading-tight font-semibold">
+            {route.label} <span className="font-normal text-muted-foreground">{routeShortName(route.via)}</span>
+          </p>
+        </div>
+        <RiskBadge level={route.summary.worst} />
+      </div>
+      <dl className="flex gap-x-6 max-[479px]:gap-x-4">
+        <Metric label="Time" value={formatDuration(route.summary.duration_s)} />
+        <Metric label="Distance" value={formatMiles(route.summary.total_miles)} />
+        {last && <Metric label="Arrive" value={formatEta(last.eta_utc, last.tz).replace(/ [A-Z]{2,4}$/, '')} />}
+      </dl>
+      <Button type="button" variant="outline" onClick={onViewAll} className="h-12 w-full rounded-xl text-base font-semibold">
+        View all routes
+      </Button>
+    </div>
   )
 }

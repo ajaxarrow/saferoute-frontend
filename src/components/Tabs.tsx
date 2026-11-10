@@ -24,8 +24,8 @@ export function Tabs<T extends string>({ label, tabs, value, onChange, children 
   }
 
   return (
-    <div className="space-y-4">
-      <div role="tablist" aria-label={label} className="grid auto-cols-fr grid-flow-col border-b-2 border-border">
+    <div className="space-y-5">
+      <div role="tablist" aria-label={label} className="grid auto-cols-fr grid-flow-col gap-1 rounded-xl bg-muted p-1">
         {tabs.map((tab, i) => {
           const selected = tab.id === value
           return (
@@ -43,8 +43,8 @@ export function Tabs<T extends string>({ label, tabs, value, onChange, children 
                 if (e.key === 'ArrowLeft') move(i, -1)
               }}
               className={cn(
-                '-mb-0.5 min-h-12 border-b-4 px-2 text-lg font-bold outline-none focus-visible:bg-muted',
-                selected ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground',
+                'min-h-10 rounded-lg px-3 text-sm font-medium whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                selected ? 'bg-card font-semibold text-foreground shadow-sm ring-1 ring-border' : 'text-muted-foreground hover:text-foreground',
               )}
             >
               {tab.label}

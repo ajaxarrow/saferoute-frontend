@@ -28,11 +28,11 @@ interface LoadFieldProps {
 export function LoadField({ value, onChange }: LoadFieldProps) {
   return (
     <div className="space-y-2">
-      <Label htmlFor="load-weight" className="text-lg font-bold">
+      <Label htmlFor="load-weight" className="text-base font-semibold">
         Load weight
       </Label>
       <div className="relative">
-        <Weight className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Weight className="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-muted-foreground" />
         <input
           id="load-weight"
           inputMode="numeric"
@@ -42,12 +42,12 @@ export function LoadField({ value, onChange }: LoadFieldProps) {
             const digits = e.target.value.replace(/\D/g, '')
             onChange(digits === '' ? null : Math.min(parseInt(digits, 10), MAX_LOAD_LB))
           }}
-          className="h-14 w-full rounded-md border-2 border-input bg-card pr-12 pl-11 text-xl font-bold tabular outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="h-14 w-full rounded-xl border border-input bg-card pr-12 pl-11 text-lg font-semibold tabular outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         />
         <span className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-base text-muted-foreground">lb</span>
       </div>
       <Segmented options={PRESETS} value={value} onChange={onChange} label="Common weights" />
-      <ul className="space-y-0.5 text-base text-muted-foreground">
+      <ul className="space-y-0.5 text-sm text-muted-foreground">
         {loadRuleLines(value).map((line) => (
           <li key={line}>{line}</li>
         ))}

@@ -16,7 +16,7 @@ interface RouteCardProps {
   onSelect: () => void
 }
 
-/** A route as a line card: bullet, roads, arrival and drive time, then the line itself with every checkpoint a station. */
+/** A flat list row, not a box: number, roads, drive time and risk. Only the selected row opens up to show its line and tags. */
 export function RouteCard({ route, selected, onSelect }: RouteCardProps) {
   const summaryId = useId()
   const { summary } = route
@@ -33,36 +33,36 @@ export function RouteCard({ route, selected, onSelect }: RouteCardProps) {
       aria-describedby={summaryId}
       onClick={onSelect}
       className={cn(
-        'w-full space-y-3 rounded-lg border-2 bg-card p-3 text-left transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
-        selected ? 'border-foreground' : 'border-border hover:border-foreground/50',
+        'w-full rounded-2xl px-3 py-3.5 text-left transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        selected ? 'bg-secondary ring-1 ring-primary/30' : 'hover:bg-muted/70',
       )}
     >
-      <div className="flex items-start gap-3">
-        <Roundel n={number} />
+      <div className="flex items-center gap-3">
+        <Roundel n={number} size="sm" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-lg leading-tight font-bold">{routeShortName(route.via) || route.label}</p>
-          <p className="text-base text-muted-foreground tabular">
+          <p className="truncate text-base leading-tight font-semibold">{routeShortName(route.via) || route.label}</p>
+          <p className="mt-0.5 text-sm text-muted-foreground tabular">
             {formatMiles(summary.total_miles)}
             {last && ` · arrive ${formatEta(last.eta_utc, last.tz)}`}
           </p>
         </div>
-        <div className="flex shrink-0 flex-col items-end gap-1">
-          <span className="text-2xl leading-none font-extrabold tabular">{formatDuration(summary.duration_s)}</span>
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          <span className="text-base leading-none font-semibold tabular">{formatDuration(summary.duration_s)}</span>
           <RiskBadge level={summary.worst} size="sm" />
         </div>
       </div>
 
-      <div id={summaryId} className="space-y-2">
+      <div id={summaryId} className={cn('space-y-3', selected ? 'mt-3.5' : 'sr-only')}>
         <RouteLine route={route} />
         {hazards.length > 0 && (
-          <p className="text-base font-semibold">{hazards.map((l) => `${RISK[l].label} ${formatMiles(summary.miles_by_level[l])}`).join(' · ')}</p>
+          <p className="text-sm font-medium">{hazards.map((l) => `${RISK[l].label} ${formatMiles(summary.miles_by_level[l])}`).join(' · ')}</p>
         )}
         {route.tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {route.tags.map((tag) => (
               <span
                 key={tag}
-                className={cn('rounded-md px-2 py-0.5 text-sm font-bold', tag === 'recommended' ? 'bg-primary text-primary-foreground' : 'border-2 border-foreground/40')}
+                className={cn('rounded-full px-2.5 py-0.5 text-sm font-medium', tag === 'recommended' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground ring-1 ring-border')}
               >
                 {TAG_LABEL[tag]}
               </span>

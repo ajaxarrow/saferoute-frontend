@@ -25,16 +25,13 @@ interface CheckpointTimelineProps {
 export function CheckpointTimeline({ route, onSelectCheckpoint }: CheckpointTimelineProps) {
   const anyRisky = route.checkpoints.some(isRisky)
   const [filter, setFilter] = useState<Filter>(anyRisky ? 'risky' : 'all')
-  const [expanded, setExpanded] = useState(false)
   const rows = route.checkpoints.filter((c) => filter === 'all' || isRisky(c))
   const maxWind = Math.max(...route.checkpoints.map((c) => c.wind_mph))
-  // A route that is Low all the way is one sentence, not 40 identical rows.
-  const collapsed = !anyRisky && !expanded
 
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-xl font-extrabold">Stops on {route.label}</h3>
+        <h3 className="text-base font-semibold">Stops on {route.label}</h3>
         {anyRisky && (
           <Segmented
             label="Which checkpoints to list"
@@ -51,38 +48,34 @@ export function CheckpointTimeline({ route, onSelectCheckpoint }: CheckpointTime
       {route.forecast_truncated && (
         <p className="text-base text-muted-foreground">The forecast ends before this trip does; late stops use the last available hour.</p>
       )}
-      {collapsed ? (
-        <div className="space-y-2">
-          <p className="text-base">
-            All {route.checkpoints.length} stops are Low. Strongest wind {maxWind} mph.
-          </p>
-          <button type="button" onClick={() => setExpanded(true)} className="min-h-12 rounded-md border-2 border-foreground px-5 text-base font-bold hover:bg-muted">
-            Show all {route.checkpoints.length} stops
-          </button>
-        </div>
-      ) : (
+      {!anyRisky && (
+        <p className="text-sm text-muted-foreground">
+          All {route.checkpoints.length} stops are Low. Strongest wind {maxWind} mph.
+        </p>
+      )}
+      {(
         <ol>
           {rows.map((c, i) => (
             <li key={c.index} className="relative pl-9">
               {/* the line: inked in this stop's risk, running down to the next stop */}
-              {i < rows.length - 1 && <span aria-hidden className="absolute top-5 bottom-[-0.25rem] left-[0.6rem] w-1.5 rounded-full" style={{ backgroundColor: RISK[c.risk].color }} />}
-              <span aria-hidden className="absolute top-3 left-0 size-6 rounded-full border-[3px] border-foreground bg-card" />
+              {i < rows.length - 1 && <span aria-hidden className="absolute top-5 bottom-[-0.25rem] left-[0.6rem] w-1 rounded-full opacity-80" style={{ backgroundColor: RISK[c.risk].color }} />}
+              <span aria-hidden className="absolute top-3 left-0 size-6 rounded-full border-2 border-muted-foreground/60 bg-card" />
               <button
                 type="button"
                 aria-label={`Checkpoint at mile ${Math.round(c.mile)}, ${RISK[c.risk].label}`}
                 onClick={() => onSelectCheckpoint(route.id, c.index)}
-                className="flex min-h-14 w-full items-start gap-3 rounded-lg px-2 py-2.5 text-left outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+                className="flex min-h-14 w-full items-start gap-3 rounded-xl px-2 py-3 text-left outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <span className="min-w-0 flex-1 space-y-0.5">
                   <span className="flex items-center justify-between gap-2">
-                    <span className="text-lg font-bold tabular">
+                    <span className="text-base font-semibold tabular">
                       {formatMiles(c.mile)} · {formatEta(c.eta_utc, c.tz)}
                     </span>
                     <RiskBadge level={c.risk} size="sm" />
                   </span>
-                  <span className="block text-base text-muted-foreground tabular">{conditions(c)}</span>
+                  <span className="block text-sm text-muted-foreground tabular">{conditions(c)}</span>
                   {c.drivers.map((d) => (
-                    <span key={d} className="block text-base font-semibold">
+                    <span key={d} className="block text-sm font-medium">
                       {d}
                     </span>
                   ))}

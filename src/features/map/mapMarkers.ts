@@ -10,14 +10,14 @@ function el(html: string, css: string): HTMLElement {
 }
 
 const PIN =
-  'width:30px;height:30px;border-radius:999px;display:flex;align-items:center;justify-content:center;font:800 15px Public Sans Variable,system-ui;color:#fff;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);'
+  'width:30px;height:30px;border-radius:999px;display:flex;align-items:center;justify-content:center;font:800 15px Inter Variable,system-ui;color:#fff;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);'
 
 /** "A" and/or "B" pins for whichever endpoints are known. Returns a cleanup function. */
 export function addEndpointMarkers(map: MapLibreMap, origin?: LonLat | null, destination?: LonLat | null): () => void {
   const markers: Marker[] = []
   // Same grammar as the route line's terminals: hollow origin, solid destination.
-  if (origin) markers.push(new Marker({ element: el('A', `${PIN}background:#ffffff;color:#0b1b3a;border:4px solid #0b1b3a;`) }).setLngLat(origin).addTo(map))
-  if (destination) markers.push(new Marker({ element: el('B', `${PIN}background:#0b1b3a;color:#ffffff;border:4px solid #0b1b3a;box-shadow:0 0 0 2px #fff,0 2px 6px rgba(0,0,0,.35);`) }).setLngLat(destination).addTo(map))
+  if (origin) markers.push(new Marker({ element: el('A', `${PIN}background:#ffffff;color:#14346b;border:4px solid #14346b;`) }).setLngLat(origin).addTo(map))
+  if (destination) markers.push(new Marker({ element: el('B', `${PIN}background:#14346b;color:#ffffff;border:4px solid #14346b;box-shadow:0 0 0 2px #fff,0 2px 6px rgba(0,0,0,.35);`) }).setLngLat(destination).addTo(map))
   return () => markers.forEach((m) => m.remove())
 }
 
@@ -33,7 +33,7 @@ export function addPlanMarkers(map: MapLibreMap, plan: PlanResponse): () => void
   const mid = pointAt(coords, cum, cum[cum.length - 1] / 2)
   const badge = el(
     '★ Best',
-    'padding:3px 9px;border-radius:999px;background:#0b1b3a;color:#fff;font:800 13px Public Sans Variable,system-ui;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);pointer-events:none;',
+    'padding:3px 9px;border-radius:999px;background:#14346b;color:#fff;font:800 13px Inter Variable,system-ui;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);pointer-events:none;',
   )
   const badgeMarker = new Marker({ element: badge }).setLngLat(mid).addTo(map)
   return () => {
@@ -47,6 +47,6 @@ const TRUCK_SVG =
 
 /** The moving truck: a white disc with a blue ring, so it reads on any risk colour underneath. */
 export function createTruckMarker(): Marker {
-  const node = el(TRUCK_SVG, 'width:38px;height:38px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:#0b1b3a;color:#fff;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.45);pointer-events:none;')
+  const node = el(TRUCK_SVG, 'width:38px;height:38px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:#14346b;color:#fff;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.45);pointer-events:none;')
   return new Marker({ element: node })
 }

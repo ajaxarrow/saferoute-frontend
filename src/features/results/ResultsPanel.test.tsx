@@ -71,16 +71,14 @@ describe('ResultsPanel', () => {
     expect(risky).toBeLessThan(all)
   })
 
-  it('collapses a route that is Low all the way into one sentence', async () => {
+  it('lists every stop straight away when the route is Low all the way', async () => {
     const calm = plan.routes.map((r) => ({
       ...r,
       checkpoints: r.checkpoints.map((c) => ({ ...c, risk: 'LOW' as const, wind_mph: 6 })),
     }))
     setup({ routes: calm })
     await userEvent.click(screen.getByRole('tab', { name: 'Stops' }))
-    expect(screen.queryAllByRole('button', { name: /^Checkpoint at mile/ })).toHaveLength(0)
     expect(screen.getByText(/all \d+ stops are low/i)).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: /show all \d+ stops/i }))
     expect(screen.getAllByRole('button', { name: /^Checkpoint at mile/ }).length).toBeGreaterThan(0)
   })
 
@@ -101,7 +99,7 @@ describe('ResultsPanel', () => {
   it('explains the scoring for the load that was entered', async () => {
     const onNoop = vi.fn()
     render(<ResultsPanel plan={plan} selectedRouteId={plan.recommended_route_id} loadLb={42_000} onSelectRoute={onNoop} onSelectCheckpoint={onNoop} />)
-    await userEvent.click(screen.getByRole('tab', { name: 'How scored' }))
+    await userEvent.click(screen.getByRole('button', { name: /how is this scored/i }))
     expect(screen.getByText(/your load: 42,000 lb/i)).toBeInTheDocument()
     expect(screen.getByText(/over 40,000 lb: winds 35\+ mph count as severe/i)).toBeInTheDocument()
   })

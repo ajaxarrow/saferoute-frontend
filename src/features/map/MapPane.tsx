@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Place, PlanResponse, RoutePreview } from '@/api/types'
 import { truckAt } from '@/lib/journey'
-import { TripWeatherCard } from './TripWeatherCard'
+import { cn } from '@/lib/utils'
 import { MapView, type FitPadding, type MapFocus } from './MapView'
 import type { Theme } from './mapStyle'
-import { cn } from '@/lib/utils'
+import { TripWeatherCard } from './TripWeatherCard'
 
 interface MapPaneProps {
   plan?: PlanResponse
@@ -15,16 +15,23 @@ interface MapPaneProps {
   onSelectRoute: (id: string) => void
   theme: Theme
   fitPadding: FitPadding
+  initialPadding: FitPadding
   focus: MapFocus | null
-  isDesktop: boolean
+  /** Positioning classes for the floating forecast bar; the layout decides where it sits. */
+  forecastClassName: string
   intervalMiles?: number
+  onCheckpointClick?: (routeId: string, index: number) => void
+  checkpointPopup?: boolean
+  selectedCheckpoint?: number | null
+  /** Extra overlay content positioned by the layout (e.g. a compact legend). */
+  children?: React.ReactNode
 }
 
 /**
- * The map plus its weather card. The forecast hour lives here, not in App, so scrubbing re-renders only this pane
- * and never the form or results list. The card and the heatmap follow the selected route.
+ * The map plus its forecast bar. The forecast hour lives here, not in the planner, so scrubbing re-renders only this pane
+ * and never the form or results list. The bar and the heatmap follow the selected route.
  */
-export function MapPane({ plan, origin: from, destination: to, preview, selectedRouteId, onSelectRoute, theme, fitPadding, focus, isDesktop, intervalMiles }: MapPaneProps) {
+export function MapPane({ plan, origin: from, destination: to, preview, selectedRouteId, onSelectRoute, theme, fitPadding, initialPadding, focus, forecastClassName, intervalMiles, onCheckpointClick, checkpointPopup, selectedCheckpoint, children }: MapPaneProps) {
   const [hour, setHour] = useState(0)
   const [playing, setPlaying] = useState(false)
   const [visible, setVisible] = useState(true)
@@ -33,6 +40,13 @@ export function MapPane({ plan, origin: from, destination: to, preview, selected
     setHour(0)
     setPlaying(false)
   }, [plan])
+
+  // The map follows the slider a beat behind the thumb, so dragging stays smooth.
+  const [mapHour, setMapHour] = useState(0)
+  useEffect(() => {
+    const id = setTimeout(() => setMapHour(hour), 60)
+    return () => clearTimeout(id)
+  }, [hour])
 
   const route = plan ? (plan.routes.find((r) => r.id === (selectedRouteId ?? plan.recommended_route_id)) ?? plan.routes[0]) : undefined
   const truck = useMemo(() => (route ? truckAt(route, hour) : undefined), [route, hour])
@@ -48,13 +62,17 @@ export function MapPane({ plan, origin: from, destination: to, preview, selected
         onSelectRoute={onSelectRoute}
         theme={theme}
         fitPadding={fitPadding}
+        initialPadding={initialPadding}
         focus={focus}
-        heatmapHour={hour}
+        heatmapHour={mapHour}
         heatmapVisible={visible}
         truckPosition={truck?.position}
+        onCheckpointClick={onCheckpointClick}
+        checkpointPopup={checkpointPopup}
+        selectedCheckpoint={selectedCheckpoint}
       />
       {plan && route && truck && (
-        <div className={cn('absolute z-10', isDesktop ? 'inset-x-0 bottom-5 mx-auto w-[min(580px,calc(100%-2rem))]' : 'inset-x-3 top-3')}>
+        <div className={cn('absolute z-10 transition-[left] duration-200 motion-reduce:transition-none', forecastClassName)}>
           <TripWeatherCard
             route={route}
             truck={truck}
@@ -69,6 +87,7 @@ export function MapPane({ plan, origin: from, destination: to, preview, selected
           />
         </div>
       )}
+      {plan && children}
     </div>
   )
 }
