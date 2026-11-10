@@ -3,19 +3,14 @@ import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import sample from '@/api/fixtures/plan.sample.json'
+import { DENVER, LOS_ANGELES, geocodeHandler } from '@/test/maptilerMock'
 import App from './App'
 
 vi.mock('@/features/map/MapView', () => ({ MapView: () => <div data-testid="map" /> }))
 
-const PLACES: Record<string, unknown[]> = {
-  denv: [{ label: 'Denver, CO, USA', name: 'Denver', region: 'CO', lat: 39.74, lon: -104.99 }],
-  los: [{ label: 'Los Angeles, CA, USA', name: 'Los Angeles', region: 'CA', lat: 34.05, lon: -118.24 }],
-}
 let planHandler: Parameters<typeof http.post>[1]
 const server = setupServer(
-  http.get('http://localhost:8000/api/geocode/', ({ request }) =>
-    HttpResponse.json({ results: PLACES[new URL(request.url).searchParams.get('q') ?? ''] ?? [] }),
-  ),
+  geocodeHandler({ denv: [DENVER], los: [LOS_ANGELES] }),
   http.post('http://localhost:8000/api/plan/', (info) => planHandler(info)),
 )
 beforeAll(() => server.listen())
@@ -59,7 +54,7 @@ describe('App', () => {
     await screen.findByRole('heading', { name: /take route 2/i })
     await user.click(screen.getByRole('button', { name: /edit trip/i }))
     await waitFor(() => expect(screen.getByRole('combobox', { name: 'From' })).toBeVisible())
-    expect(screen.getByRole('combobox', { name: 'From' })).toHaveValue('Los Angeles, CA, USA')
+    expect(screen.getByRole('combobox', { name: 'From' })).toHaveValue('Los Angeles, CA')
   })
 
   it('offers a way back to the results while editing', async () => {

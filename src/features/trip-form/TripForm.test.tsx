@@ -1,21 +1,14 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
+import { DENVER, LOS_ANGELES, geocodeHandler } from '@/test/maptilerMock'
 import { renderWithClient } from '@/test/render'
 import { TripForm } from './TripForm'
 
-const PLACES = {
-  denv: [{ label: 'Denver, CO, USA', name: 'Denver', region: 'CO', lat: 39.74, lon: -104.99 }],
-  los: [{ label: 'Los Angeles, CA, USA', name: 'Los Angeles', region: 'CA', lat: 34.05, lon: -118.24 }],
-} as Record<string, unknown[]>
-
 let geocodeCalls = 0
 const server = setupServer(
-  http.get('http://localhost:8000/api/geocode/', ({ request }) => {
+  geocodeHandler({ denv: [DENVER], los: [LOS_ANGELES] }, () => {
     geocodeCalls++
-    const q = new URL(request.url).searchParams.get('q') ?? ''
-    return HttpResponse.json({ results: PLACES[q] ?? [] })
   }),
 )
 beforeAll(() => server.listen())
@@ -52,7 +45,7 @@ describe('TripForm', () => {
   it('selecting a suggestion fills the field', async () => {
     setup()
     await pick('From', 'denv', 'Denver')
-    expect(screen.getByRole('combobox', { name: 'From' })).toHaveValue('Denver, CO, USA')
+    expect(screen.getByRole('combobox', { name: 'From' })).toHaveValue('Denver, CO')
   })
 
   it('keeps submit disabled and says why until both places are chosen', async () => {
@@ -72,8 +65,8 @@ describe('TripForm', () => {
     await pick('From', 'denv', 'Denver')
     await pick('To', 'los', 'Los Angeles')
     await userEvent.click(screen.getByRole('button', { name: /swap/i }))
-    expect(screen.getByRole('combobox', { name: 'From' })).toHaveValue('Los Angeles, CA, USA')
-    expect(screen.getByRole('combobox', { name: 'To' })).toHaveValue('Denver, CO, USA')
+    expect(screen.getByRole('combobox', { name: 'From' })).toHaveValue('Los Angeles, CA')
+    expect(screen.getByRole('combobox', { name: 'To' })).toHaveValue('Denver, CO')
   })
 
   it('load chip sets the weight and the helper explains the rules that apply', async () => {
@@ -115,8 +108,8 @@ describe('TripForm', () => {
 
     await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1))
     expect(onSubmit).toHaveBeenCalledWith({
-      origin: { label: 'Denver, CO, USA', lat: 39.74, lon: -104.99 },
-      destination: { label: 'Los Angeles, CA, USA', lat: 34.05, lon: -118.24 },
+      origin: { label: 'Denver, CO', lat: 39.74, lon: -104.99 },
+      destination: { label: 'Los Angeles, CA', lat: 34.05, lon: -118.24 },
       departure_local: '2026-12-15T05:00',
       load_lb: 40000,
       interval_miles: 10,
@@ -134,7 +127,7 @@ describe('TripForm', () => {
   })
 
   it('offers recently used places when the field is focused and empty', async () => {
-    localStorage.setItem('recent-places', JSON.stringify(PLACES.denv))
+    localStorage.setItem('recent-places', JSON.stringify([{ label: 'Denver, CO', name: 'Denver', region: 'CO', lat: 39.74, lon: -104.99 }]))
     setup()
     await userEvent.click(screen.getByRole('combobox', { name: 'From' }))
     expect(await screen.findByRole('option', { name: /Denver/ })).toBeInTheDocument()

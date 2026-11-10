@@ -164,7 +164,7 @@ export function PlaceInput({ label, icon, value, onChange, placeholder, recent, 
                 {!waiting && search.isSuccess && search.data.length === 0 && (
                   <CommandEmpty>No US places match “{text.trim()}”.</CommandEmpty>
                 )}
-                {!waiting && search.isError && <p className="px-3 py-3 text-sm text-destructive">Place search failed. Try again.</p>}
+                {!waiting && search.isError && <p className="px-3 py-3 text-sm text-destructive">{search.error.message}</p>}
               </CommandGroup>
             )}
           </CommandList>

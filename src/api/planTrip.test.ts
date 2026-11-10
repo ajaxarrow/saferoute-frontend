@@ -1,7 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { ApiError } from './client'
-import { searchPlaces } from './geocode'
 import { planTrip } from './planTrip'
 import type { PlanRequest } from './types'
 
@@ -45,18 +44,5 @@ describe('planTrip', () => {
   it('turns a network failure into a friendly ApiError', async () => {
     server.use(http.post('http://localhost:8000/api/plan/', () => HttpResponse.error()))
     await expect(planTrip(request)).rejects.toMatchObject({ code: 'network' })
-  })
-})
-
-describe('searchPlaces', () => {
-  it('returns results and sends the query', async () => {
-    server.use(
-      http.get('http://localhost:8000/api/geocode/', ({ request: r }) => {
-        expect(new URL(r.url).searchParams.get('q')).toBe('denv')
-        return HttpResponse.json({ results: [{ label: 'Denver, CO, USA', name: 'Denver', region: 'CO', lat: 39.7, lon: -105 }] })
-      }),
-    )
-    const places = await searchPlaces('denv')
-    expect(places[0].name).toBe('Denver')
   })
 })
