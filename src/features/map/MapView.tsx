@@ -50,6 +50,17 @@ interface MapViewProps {
 }
 
 // Continental US, [west, south, east, north].
+/**
+ * Frames bounds inside the part of the map no panel covers. Padding is folded into the camera (centre + zoom) instead of
+ * being handed to MapLibre, which would keep it as a persistent viewport inset and stop drawing tiles in the inset.
+ */
+function fitTo(map: MapLibreMap, bounds: [[number, number], [number, number]], padding: FitPadding, opts: { duration: number; maxZoom: number }): void {
+  const cam = map.cameraForBounds(bounds, { padding, maxZoom: opts.maxZoom })
+  if (!cam || !cam.center || cam.zoom == null) return
+  if (opts.duration === 0) map.jumpTo({ center: cam.center, zoom: cam.zoom })
+  else map.easeTo({ center: cam.center, zoom: cam.zoom, duration: opts.duration })
+}
+
 const US_BOUNDS: [[number, number], [number, number]] = [[-125.5, 24], [-66, 49.8]]
 
 export const MapView = memo(function MapView({ plan, origin, destination, preview, selectedRouteId, onSelectRoute, theme, fitPadding, initialPadding, focus, heatmapHour, heatmapVisible, truckPosition, onCheckpointClick, checkpointPopup = true, selectedCheckpoint = null }: MapViewProps) {
@@ -77,11 +88,12 @@ export const MapView = memo(function MapView({ plan, origin, destination, previe
     const map = new MapLibreMap({
       container: containerRef.current!,
       style: mapStyleUrl(live.current.theme),
-      bounds: US_BOUNDS,
-      fitBoundsOptions: { padding: live.current.initialPadding, maxZoom: 5 },
+      center: [-98.5, 39.5],
+      zoom: 3,
       attributionControl: { compact: true },
     })
     map.addControl(new NavigationControl({ showCompass: false }), 'top-right')
+    fitTo(map, US_BOUNDS, live.current.initialPadding, { maxZoom: 5, duration: 0 })
     map.on('style.load', () => {
       addRouteLayers(map)
       addHeatmapLayers(map, LAYER.hit)
@@ -143,9 +155,9 @@ export const MapView = memo(function MapView({ plan, origin, destination, previe
     const removeMarkers = addEndpointMarkers(map, from, to)
 
     if (preview?.length) {
-      map.fitBounds(boundsOfPoints(preview.flatMap((r) => r.geometry)), { padding: fitPadding, duration: 900, maxZoom: 11 })
+      fitTo(map, boundsOfPoints(preview.flatMap((r) => r.geometry)), fitPadding, { duration: 900, maxZoom: 11 })
     } else if (from && to) {
-      map.fitBounds(boundsOfPoints([from, to]), { padding: fitPadding, duration: 900, maxZoom: 11 })
+      fitTo(map, boundsOfPoints([from, to]), fitPadding, { duration: 900, maxZoom: 11 })
     } else if (from || to) {
       map.flyTo({ center: (from ?? to)!, zoom: 9, duration: 900 })
     }
@@ -194,7 +206,7 @@ export const MapView = memo(function MapView({ plan, origin, destination, previe
   useEffect(() => {
     const map = mapRef.current
     if (!map || !plan) return
-    map.fitBounds(boundsOf(plan), { padding: fitPadding, duration: 900, maxZoom: 11 })
+    fitTo(map, boundsOf(plan), fitPadding, { duration: 900, maxZoom: 11 })
     return addPlanMarkers(map, plan)
     // Re-fit only for a new plan, not when padding changes with layout.
     // eslint-disable-next-line react-hooks/exhaustive-deps

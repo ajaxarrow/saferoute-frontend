@@ -1,4 +1,5 @@
 import { PlannerMap } from '@/features/planner/PlannerMap'
+import { PanelShell } from '@/features/planner/PanelShell'
 import { PlannerPanel } from '@/features/planner/PlannerPanel'
 import type { PlannerState } from '@/features/planner/usePlanner'
 import { RouteComparisonBar } from '@/features/results/RouteComparisonBar'
@@ -11,8 +12,10 @@ export function DesktopLayout({ p }: { p: PlannerState }) {
     <div className="flex h-dvh w-full flex-col overflow-hidden">
       <AppHeader theme={p.theme} onToggleTheme={p.toggleTheme} loadLb={p.request?.load_lb} />
       <div className="flex min-h-0 flex-1">
-        <aside aria-label="Trip planner" className="w-[320px] shrink-0 overflow-y-auto border-r bg-card p-5 min-[1440px]:w-[360px] min-[1440px]:p-6">
-          <PlannerPanel p={p} showRouteList={false} />
+        <aside aria-label="Trip planner" className="w-[320px] shrink-0 border-r bg-card min-[1440px]:w-[360px]">
+          <PanelShell className="p-5 min-[1440px]:p-6" resetKey={p.view}>
+            <PlannerPanel p={p} showRouteList={false} />
+          </PanelShell>
         </aside>
         <main className="relative min-w-0 flex-1">
           <PlannerMap p={p} forecastClassName="top-3 left-1/2 w-[min(460px,calc(100%-7rem))] -translate-x-1/2" />

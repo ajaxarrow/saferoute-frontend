@@ -1,5 +1,6 @@
 import { AlertCircle, ArrowUpDown, Loader2, Search, ShieldAlert } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
+import { createPortal } from 'react-dom'
 import type { ApiError } from '@/api/client'
 import type { IntervalMiles, Place, PlanRequest } from '@/api/types'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -9,6 +10,7 @@ import { toDepartureLocal, type DepartureChoice } from './departure'
 import { IntervalField } from './IntervalField'
 import { LoadField } from './LoadField'
 import { PlaceInput } from './PlaceInput'
+import { usePanelFooter } from '@/features/planner/PanelShell'
 import { useRecentPlaces } from './useRecentPlaces'
 
 interface TripFormProps {
@@ -19,11 +21,14 @@ interface TripFormProps {
   onPlacesChange?: (origin: Place | null, destination: Place | null) => void
   /** State of the route lookup that runs once both places are chosen. */
   routeCheck?: { isLoading: boolean; error?: ApiError | null }
+  /** False while the form is tucked away behind the results, so its pinned footer goes too. */
+  visible?: boolean
 }
 
 const toRef = (p: Place) => ({ label: p.label, lat: p.lat, lon: p.lon })
 
-export function TripForm({ onSubmit, isLoading, error, onPlacesChange, routeCheck }: TripFormProps) {
+export function TripForm({ onSubmit, isLoading, error, onPlacesChange, routeCheck, visible = true }: TripFormProps) {
+  const slot = usePanelFooter()
   const { recent, remember } = useRecentPlaces()
   const [origin, setOrigin] = useState<Place | null>(null)
   const [destination, setDestination] = useState<Place | null>(null)
@@ -68,8 +73,31 @@ export function TripForm({ onSubmit, isLoading, error, onPlacesChange, routeChec
     setSwapCount((n) => n + 1)
   }
 
+  const footer = (
+    <div className="space-y-2 border-t bg-card px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:px-5 min-[1440px]:px-6">
+      <Button
+        type="submit"
+        form="trip-form"
+        disabled={Boolean(blocker) || isLoading}
+        className="h-14 w-full gap-2 rounded-xl bg-primary text-lg font-semibold text-primary-foreground hover:bg-[var(--primary-hover)] disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="size-5 animate-spin" /> Checking routes &amp; weather…
+          </>
+        ) : (
+          <>
+            <Search className="size-5" /> Find safest route
+          </>
+        )}
+      </Button>
+      {blocker && !isLoading && <p className="text-center text-sm text-muted-foreground">{blocker}</p>}
+    </div>
+  )
+
   return (
-    <form onSubmit={submit} className="space-y-6" noValidate>
+
+    <form id="trip-form" onSubmit={submit} className="space-y-6" noValidate>
       <div>
         <h2 className="text-xl font-semibold">Plan a trip</h2>
         <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -77,7 +105,7 @@ export function TripForm({ onSubmit, isLoading, error, onPlacesChange, routeChec
         </p>
       </div>
       <div className="flex items-stretch gap-2">
-        <div className="relative min-w-0 flex-1 rounded-xl border border-input bg-card p-1 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background">
+        <div className="relative min-w-0 flex-1 rounded-xl border border-input bg-card p-1 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background">
           <span aria-hidden className="pointer-events-none absolute top-[2.9rem] left-[1.55rem] z-10 h-[1.9rem] border-l-2 border-dotted border-muted-foreground/70" />
           <PlaceInput
             key={`from-${swapCount}`}
@@ -135,20 +163,7 @@ export function TripForm({ onSubmit, isLoading, error, onPlacesChange, routeChec
         </Alert>
       )}
 
-      <div className="sticky bottom-0 z-10 -mx-5 space-y-2 border-t bg-card px-5 pt-3 pb-3 min-[1440px]:-mx-6 min-[1440px]:px-6">
-        <Button type="submit" disabled={Boolean(blocker) || isLoading} className="h-14 w-full gap-2 rounded-xl bg-primary text-lg font-semibold text-primary-foreground hover:bg-[var(--primary-hover)] disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100">
-          {isLoading ? (
-            <>
-              <Loader2 className="size-5 animate-spin" /> Checking routes &amp; weather…
-            </>
-          ) : (
-            <>
-              <Search className="size-5" /> Find safest route
-            </>
-          )}
-        </Button>
-        {blocker && !isLoading && <p className="text-center text-sm text-muted-foreground">{blocker}</p>}
-      </div>
+      {visible && (slot ? createPortal(footer, slot) : footer)}
     </form>
   )
 }

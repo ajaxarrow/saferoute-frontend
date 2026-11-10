@@ -1,6 +1,7 @@
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { useEffect } from 'react'
 import { PlannerMap } from '@/features/planner/PlannerMap'
+import { PanelShell } from '@/features/planner/PanelShell'
 import { PlannerPanel } from '@/features/planner/PlannerPanel'
 import type { PlannerState } from '@/features/planner/usePlanner'
 import { RouteComparisonBar } from '@/features/results/RouteComparisonBar'
@@ -63,13 +64,15 @@ export function TabletLayout({ p }: { p: PlannerState }) {
           )}
         >
           <div className="flex h-12 shrink-0 items-center justify-between border-b pr-2 pl-4">
-            <h2 className="text-base font-semibold">{p.showResults ? 'Your trip' : 'Trip planner'}</h2>
+            <h2 className="text-base font-semibold">{p.showResults ? 'Your trip' : 'Trip panel'}</h2>
             <button type="button" onClick={() => setDrawerOpen(false)} aria-label="Close trip panel" className="flex size-11 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted">
               <PanelLeftClose className="size-5" aria-hidden />
             </button>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto p-5">
-            <PlannerPanel p={p} showRouteList={false} />
+          <div className="min-h-0 flex-1">
+            <PanelShell className="p-5" resetKey={p.view}>
+              <PlannerPanel p={p} showRouteList={false} />
+            </PanelShell>
           </div>
         </aside>
       </main>

@@ -67,7 +67,7 @@ export function usePlanner(layout: LayoutKind) {
   const submit = useCallback(
     (req: PlanRequest) => {
       setRequest(req)
-      setSheet('full')
+      setSheet('half') // keep the map in view while the routes load
       setCheckpoint(null)
       trip.mutate(req, {
         onSuccess: (data) => {

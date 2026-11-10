@@ -10,6 +10,7 @@ import type { PlannerState } from './usePlanner'
 export function PlannerPanel({ p, showRouteList = true }: { p: PlannerState; showRouteList?: boolean }) {
   const { trip, plan, request, view, showResults } = p
   const editing = view === 'form'
+  const formHidden = trip.isPending || (!editing && Boolean(plan))
   return (
     <div className="space-y-6 pb-6">
       {view === 'results' && request && !trip.isPending && <TripSummaryBar request={request} onEdit={p.editTrip} />}
@@ -19,13 +20,14 @@ export function PlannerPanel({ p, showRouteList = true }: { p: PlannerState; sho
         </Button>
       )}
       {/* Kept mounted (just hidden) behind the loader and the results so "Edit trip" never loses what was typed. */}
-      <div hidden={trip.isPending || (!editing && Boolean(plan))}>
+      <div hidden={formHidden}>
         <TripForm
           onSubmit={p.submit}
           isLoading={trip.isPending}
           error={trip.error}
           onPlacesChange={p.changePlaces}
           routeCheck={{ isLoading: p.preview.isFetching, error: p.preview.error }}
+          visible={!formHidden}
         />
       </div>
       {trip.isPending && <LoadingState />}

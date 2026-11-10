@@ -23,21 +23,14 @@ interface BottomSheetProps {
   peekHeight?: number
   /** Accessible name of the sheet. */
   label?: string
-  /** When this value changes the content scrolls back to the top (e.g. new results arrived). */
-  resetScrollKey?: unknown
   children: ReactNode
 }
 
 /** Non-modal bottom sheet: drag the handle or tap it to cycle peek / half / full; the map behind stays usable. */
-export function BottomSheet({ snap, onSnapChange, peek, peekHeight = DEFAULT_PEEK_PX, label = 'Trip planner', resetScrollKey, children }: BottomSheetProps) {
-  const scroller = useRef<HTMLDivElement>(null)
+export function BottomSheet({ snap, onSnapChange, peek, peekHeight = DEFAULT_PEEK_PX, label = 'Trip planner', children }: BottomSheetProps) {
   const sheet = useRef<HTMLDivElement>(null)
   const drag = useRef<{ startY: number; startHeight: number; moved: boolean } | null>(null)
   const [dragHeight, setDragHeight] = useState<number | null>(null)
-
-  useEffect(() => {
-    scroller.current?.scrollTo({ top: 0 })
-  }, [resetScrollKey])
 
   const onPointerDown = (e: PointerEvent<HTMLButtonElement>) => {
     e.currentTarget.setPointerCapture(e.pointerId)
@@ -110,7 +103,8 @@ export function BottomSheet({ snap, onSnapChange, peek, peekHeight = DEFAULT_PEE
       </div>
       {showPeek && <div className="px-4 pb-4">{peek}</div>}
       {/* Kept mounted while peeking so the form keeps what the driver typed. */}
-      <div ref={scroller} hidden={showPeek} className="min-h-0 flex-1 overflow-y-auto px-4">
+      {/* Kept mounted while peeking so the form keeps what the driver typed. */}
+      <div hidden={showPeek} className="min-h-0 flex-1">
         {children}
       </div>
     </div>

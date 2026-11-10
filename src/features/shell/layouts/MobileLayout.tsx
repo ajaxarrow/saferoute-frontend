@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils'
 import { PlannerMap } from '@/features/planner/PlannerMap'
+import { PanelShell } from '@/features/planner/PanelShell'
 import { PlannerPanel } from '@/features/planner/PlannerPanel'
 import type { PlannerState } from '@/features/planner/usePlanner'
 import { PeekSummary } from '@/features/results/PeekSummary'
@@ -49,8 +50,10 @@ export function MobileLayout({ p }: { p: PlannerState }) {
           <MobileLegend />
         </PlannerMap>
       </main>
-      <BottomSheet snap={sheet} onSnapChange={setSheet} peek={peek} peekHeight={route ? 208 : 132} resetScrollKey={`${p.view}-${plan?.recommended_route_id}-${p.trip.isPending}`}>
-        <PlannerPanel p={p} />
+      <BottomSheet snap={sheet} onSnapChange={setSheet} peek={peek} peekHeight={route ? 208 : 132}>
+        <PanelShell className="px-4" resetKey={`${p.view}-${plan?.recommended_route_id}-${p.trip.isPending}`}>
+          <PlannerPanel p={p} />
+        </PanelShell>
       </BottomSheet>
       {p.checkpointDetail && <CheckpointSheet route={p.checkpointDetail.route} checkpoint={p.checkpointDetail.checkpoint} onClose={p.closeCheckpoint} />}
     </div>
