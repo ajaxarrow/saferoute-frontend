@@ -41,7 +41,7 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: /take route 2/i })).toBeInTheDocument()
     expect(within(screen.getByRole('radiogroup', { name: 'Route options' })).getAllByRole('radio')).toHaveLength(3)
     expect(screen.getByLabelText('Forecast hour')).toBeInTheDocument()
-    expect(screen.getByTestId('map')).toBeInTheDocument()
+    expect(await screen.findByTestId('map')).toBeInTheDocument()
   })
 
   it('shows the server message in the form and no results when no route exists', async () => {

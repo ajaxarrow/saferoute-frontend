@@ -5,6 +5,8 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  // MapLibre 6 spawns its module worker relative to its own files; pre-bundling breaks that path.
+  optimizeDeps: { exclude: ['maplibre-gl'] },
   resolve: { alias: { '@': path.resolve(import.meta.dirname, './src') } },
   test: {
     environment: 'jsdom',

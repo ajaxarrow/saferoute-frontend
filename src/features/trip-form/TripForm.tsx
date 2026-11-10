@@ -102,7 +102,7 @@ export function TripForm({ onSubmit, isLoading, error }: TripFormProps) {
         </Alert>
       )}
 
-      <div className="space-y-2">
+      <div className="sticky bottom-0 z-10 -mx-4 space-y-2 bg-background/95 px-4 pt-3 pb-3 backdrop-blur md:-mx-5 md:px-5">
         <Button type="submit" disabled={Boolean(blocker) || isLoading} className="h-14 w-full gap-2 rounded-xl text-base font-semibold">
           {isLoading ? (
             <>

@@ -1,11 +1,10 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useCallback, useMemo, useState, type ReactNode } from 'react'
+import { lazy, Suspense, useCallback, useMemo, useState, type ReactNode } from 'react'
 import { Toaster } from '@/components/ui/sonner'
 import type { PlanRequest, PlanResponse } from '@/api/types'
-import { HeatmapControl } from '@/features/map/HeatmapControl'
-import { MapView, type FitPadding, type MapFocus } from '@/features/map/MapView'
+import type { FitPadding, MapFocus } from '@/features/map/MapView'
 import { ResultsPanel } from '@/features/results/ResultsPanel'
-import { BottomSheet } from '@/features/shell/BottomSheet'
+import { BottomSheet, type SheetSnap } from '@/features/shell/BottomSheet'
 import { LoadingState } from '@/features/shell/LoadingState'
 import { PanelHeader } from '@/features/shell/PanelHeader'
 import { TripSummaryBar } from '@/features/shell/TripSummaryBar'
@@ -13,6 +12,9 @@ import { TripForm } from '@/features/trip-form/TripForm'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { useTheme } from '@/hooks/useTheme'
 import { useTripPlan } from '@/hooks/useTripPlan'
+
+// MapLibre is the bulk of the bundle; load it after the form has rendered.
+const MapPane = lazy(() => import('@/features/map/MapPane').then((m) => ({ default: m.MapPane })))
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { refetchOnWindowFocus: false } } })
 
@@ -26,34 +28,29 @@ function Planner() {
   const [view, setView] = useState<'form' | 'results'>('form')
   const [selectedRouteId, setSelectedRouteId] = useState<string>()
   const [focus, setFocus] = useState<MapFocus | null>(null)
-  const [sheetExpanded, setSheetExpanded] = useState(true)
-
-  const [hour, setHour] = useState(0)
-  const [playing, setPlaying] = useState(false)
-  const [heatVisible, setHeatVisible] = useState(true)
+  const [sheet, setSheet] = useState<SheetSnap>('full')
 
   const submit = useCallback(
     (req: PlanRequest) => {
       setRequest(req)
-      setSheetExpanded(true)
-      setPlaying(false)
+      setSheet('full')
       trip.mutate(req, {
         onSuccess: (data) => {
           setPlan(data)
           setSelectedRouteId(data.recommended_route_id)
-          setHour(0)
           setView('results')
+          setSheet('half')
         },
       })
     },
-    [trip],
+    [trip.mutate],
   )
 
   const selectCheckpoint = useCallback(
     (routeId: string, index: number) => {
       setSelectedRouteId(routeId)
       setFocus({ routeId, index, nonce: Date.now() })
-      if (!isDesktop) setSheetExpanded(false) // reveal the map
+      if (!isDesktop) setSheet('peek') // reveal the map
     },
     [isDesktop],
   )
@@ -66,13 +63,15 @@ function Planner() {
     [isDesktop],
   )
 
-  const origin = plan?.routes[0].checkpoints[0]
   const showResults = view === 'results' && plan && !trip.isPending
 
   const panel: ReactNode = (
     <div className="space-y-6">
       <PanelHeader theme={theme} onToggleTheme={toggle} />
-      {view === 'results' && request && !trip.isPending && <TripSummaryBar request={request} onEdit={() => setView('form')} />}
+      {view === 'results' && request && !trip.isPending && <TripSummaryBar request={request} onEdit={() => {
+            setView('form')
+            setSheet('full')
+          }} />}
       <div hidden={view === 'results' && Boolean(plan) && !trip.isPending}>
         <TripForm onSubmit={submit} isLoading={trip.isPending} error={trip.error} />
       </div>
@@ -88,32 +87,18 @@ function Planner() {
     </div>
   )
 
-  const heatmapControl =
-    plan && origin ? (
-      <HeatmapControl
-        hour={hour}
-        maxHour={plan.heatmap.hours - 1}
-        onHourChange={setHour}
-        departureIso={origin.eta_utc}
-        tz={origin.tz}
-        visible={heatVisible}
-        onVisibleChange={setHeatVisible}
-        playing={playing}
-        onPlayingChange={setPlaying}
-      />
-    ) : null
-
   const map = (
-    <MapView
-      plan={plan}
-      selectedRouteId={selectedRouteId}
-      onSelectRoute={setSelectedRouteId}
-      theme={theme}
-      fitPadding={fitPadding}
-      focus={focus}
-      heatmapHour={hour}
-      heatmapVisible={heatVisible}
-    />
+    <Suspense fallback={<div className="size-full bg-muted" aria-hidden />}>
+      <MapPane
+        plan={plan}
+        selectedRouteId={selectedRouteId}
+        onSelectRoute={setSelectedRouteId}
+        theme={theme}
+        fitPadding={fitPadding}
+        focus={focus}
+        isDesktop={isDesktop}
+      />
+    </Suspense>
   )
 
   if (isDesktop) {
@@ -122,7 +107,6 @@ function Planner() {
         <aside className="w-[440px] shrink-0 overflow-y-auto border-r bg-background p-5">{panel}</aside>
         <main className="relative min-w-0 flex-1">
           {map}
-          {heatmapControl && <div className="absolute inset-x-0 bottom-5 mx-auto w-[min(560px,calc(100%-2rem))]">{heatmapControl}</div>}
         </main>
       </div>
     )
@@ -131,8 +115,7 @@ function Planner() {
   return (
     <div className="relative h-dvh w-full overflow-hidden">
       {map}
-      {heatmapControl && <div className="absolute inset-x-3 top-3 z-10">{heatmapControl}</div>}
-      <BottomSheet expanded={sheetExpanded} onExpandedChange={setSheetExpanded}>
+      <BottomSheet snap={sheet} onSnapChange={setSheet} resetScrollKey={`${view}-${plan?.recommended_route_id}-${trip.isPending}`}>
         {panel}
       </BottomSheet>
     </div>
