@@ -4,7 +4,6 @@ import { MOCK_ENABLED, mockPlaces } from './mock'
 import type { Place } from './types'
 
 const RESULT_COUNT = '6'
-const COUNTRY = 'us'
 const SEARCH_ERROR = 'Place search is unavailable. Try again in a moment.'
 
 interface ContextEntry {
@@ -46,7 +45,6 @@ export async function searchPlaces(query: string, signal?: AbortSignal): Promise
   try {
     response = await fetch(
       maptilerUrl(`geocoding/${encodeURIComponent(query)}.json`, {
-        country: COUNTRY,
         limit: RESULT_COUNT,
         autocomplete: 'true',
         language: 'en',

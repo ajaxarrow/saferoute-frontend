@@ -1,13 +1,13 @@
 import { Map as MapLibreMap, NavigationControl, Popup, type MapLayerMouseEvent } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useEffect, useRef, useState } from 'react'
-import type { Checkpoint, PlanResponse, PlannedRoute } from '@/api/types'
+import type { Checkpoint, Place, PlanResponse, PlannedRoute, RoutePreview } from '@/api/types'
 import { checkpointPopupHtml } from './checkpointPopup'
 import { addHeatmapLayers, setHeatmapData, setHeatmapHour, setHeatmapVisible } from './heatmapLayer'
-import { addRouteLayers, LAYER, setRouteData } from './mapLayers'
-import { addPlanMarkers } from './mapMarkers'
+import { addRouteLayers, LAYER, setPreviewData, setRouteData } from './mapLayers'
+import { addEndpointMarkers, addPlanMarkers } from './mapMarkers'
 import { mapStyleUrl, type Theme } from './mapStyle'
-import { boundsOf } from './routeLayers'
+import { boundsOf, boundsOfPoints } from './routeLayers'
 
 export interface FitPadding {
   top: number
@@ -25,6 +25,11 @@ export interface MapFocus {
 
 interface MapViewProps {
   plan?: PlanResponse
+  /** Places chosen in the form; the map reacts as soon as they are set. */
+  origin?: Place | null
+  destination?: Place | null
+  /** Candidate routes for those places, shown until a full plan replaces them. */
+  preview?: RoutePreview[]
   selectedRouteId?: string
   onSelectRoute: (id: string) => void
   theme: Theme
@@ -36,7 +41,7 @@ interface MapViewProps {
 
 const US_CENTER: [number, number] = [-98.5, 39.5]
 
-export function MapView({ plan, selectedRouteId, onSelectRoute, theme, fitPadding, focus, heatmapHour, heatmapVisible }: MapViewProps) {
+export function MapView({ plan, origin, destination, preview, selectedRouteId, onSelectRoute, theme, fitPadding, focus, heatmapHour, heatmapVisible }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
   const popupRef = useRef<Popup | null>(null)
@@ -111,6 +116,34 @@ export function MapView({ plan, selectedRouteId, onSelectRoute, theme, fitPaddin
   useEffect(() => {
     if (mapRef.current) setHeatmapData(mapRef.current, plan?.heatmap)
   }, [plan, styleVersion])
+
+  // Before a plan exists the map follows the form: pin + zoom to the origin, then frame the candidate routes.
+  const showPreview = plan ? undefined : preview
+  useEffect(() => {
+    if (mapRef.current) setPreviewData(mapRef.current, showPreview ?? [])
+  }, [showPreview, styleVersion])
+
+  const originKey = origin ? `${origin.lon},${origin.lat}` : ''
+  const destinationKey = destination ? `${destination.lon},${destination.lat}` : ''
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || plan) return
+    const from = origin ? ([origin.lon, origin.lat] as [number, number]) : null
+    const to = destination ? ([destination.lon, destination.lat] as [number, number]) : null
+    popupRef.current?.remove()
+    const removeMarkers = addEndpointMarkers(map, from, to)
+
+    if (preview?.length) {
+      map.fitBounds(boundsOfPoints(preview.flatMap((r) => r.geometry)), { padding: fitPadding, duration: 900, maxZoom: 11 })
+    } else if (from && to) {
+      map.fitBounds(boundsOfPoints([from, to]), { padding: fitPadding, duration: 900, maxZoom: 11 })
+    } else if (from || to) {
+      map.flyTo({ center: (from ?? to)!, zoom: 9, duration: 900 })
+    }
+    return removeMarkers
+    // Re-frame when the places or their routes change, not when padding changes with layout.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plan, originKey, destinationKey, preview])
 
   // Scrubbing only repoints paint expressions; coalesce bursts to one update per frame.
   useEffect(() => {

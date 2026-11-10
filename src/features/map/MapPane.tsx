@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { PlanResponse } from '@/api/types'
+import type { Place, PlanResponse, RoutePreview } from '@/api/types'
 import { HeatmapControl } from './HeatmapControl'
 import { MapView, type FitPadding, type MapFocus } from './MapView'
 import type { Theme } from './mapStyle'
@@ -7,6 +7,9 @@ import { cn } from '@/lib/utils'
 
 interface MapPaneProps {
   plan?: PlanResponse
+  origin?: Place | null
+  destination?: Place | null
+  preview?: RoutePreview[]
   selectedRouteId?: string
   onSelectRoute: (id: string) => void
   theme: Theme
@@ -19,7 +22,7 @@ interface MapPaneProps {
  * The map plus its forecast slider. The slider's hour lives here, not in App, so scrubbing
  * re-renders only this pane and never the form or results list.
  */
-export function MapPane({ plan, selectedRouteId, onSelectRoute, theme, fitPadding, focus, isDesktop }: MapPaneProps) {
+export function MapPane({ plan, origin: from, destination: to, preview, selectedRouteId, onSelectRoute, theme, fitPadding, focus, isDesktop }: MapPaneProps) {
   const [hour, setHour] = useState(0)
   const [playing, setPlaying] = useState(false)
   const [visible, setVisible] = useState(true)
@@ -35,6 +38,9 @@ export function MapPane({ plan, selectedRouteId, onSelectRoute, theme, fitPaddin
     <div className="relative size-full">
       <MapView
         plan={plan}
+        origin={from}
+        destination={to}
+        preview={preview}
         selectedRouteId={selectedRouteId}
         onSelectRoute={onSelectRoute}
         theme={theme}

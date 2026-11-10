@@ -8,6 +8,17 @@ export interface Place {
   lon: number
 }
 
+/** A candidate route before weather is known (POST /api/routes/). */
+export interface RoutePreview {
+  id: string
+  label: string
+  via: string
+  total_miles: number
+  duration_s: number
+  /** [lon, lat] pairs. */
+  geometry: [number, number][]
+}
+
 export type IntervalMiles = 10 | 25 | 50
 
 export interface PlanRequest {

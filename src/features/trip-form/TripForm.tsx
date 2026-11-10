@@ -1,5 +1,5 @@
 import { AlertCircle, ArrowUpDown, Loader2, MapPin, Navigation, Search } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import type { ApiError } from '@/api/client'
 import type { IntervalMiles, Place, PlanRequest } from '@/api/types'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -15,11 +15,15 @@ interface TripFormProps {
   onSubmit: (request: PlanRequest) => void
   isLoading: boolean
   error?: ApiError | null
+  /** Called whenever the chosen places change, so the map can follow the form. */
+  onPlacesChange?: (origin: Place | null, destination: Place | null) => void
+  /** State of the route lookup that runs once both places are chosen. */
+  routeCheck?: { isLoading: boolean; error?: ApiError | null }
 }
 
 const toRef = (p: Place) => ({ label: p.label, lat: p.lat, lon: p.lon })
 
-export function TripForm({ onSubmit, isLoading, error }: TripFormProps) {
+export function TripForm({ onSubmit, isLoading, error, onPlacesChange, routeCheck }: TripFormProps) {
   const { recent, remember } = useRecentPlaces()
   const [origin, setOrigin] = useState<Place | null>(null)
   const [destination, setDestination] = useState<Place | null>(null)
@@ -28,15 +32,23 @@ export function TripForm({ onSubmit, isLoading, error }: TripFormProps) {
   const [loadLb, setLoadLb] = useState<number | null>(40_000)
   const [interval, setInterval] = useState<IntervalMiles>(25)
 
+  useEffect(() => {
+    onPlacesChange?.(origin, destination)
+  }, [origin, destination, onPlacesChange])
+
+  const noRoute = routeCheck?.error?.code === 'no_route' ? routeCheck.error.message : null
+
   const blocker = !origin
     ? "Choose where you're starting from."
     : !destination
       ? 'Choose a destination.'
-      : loadLb == null
-        ? 'Enter your load weight.'
-        : departure.mode === 'custom' && !departure.local
-          ? 'Pick a departure date and time.'
-          : null
+      : noRoute
+        ? noRoute
+        : loadLb == null
+          ? 'Enter your load weight.'
+          : departure.mode === 'custom' && !departure.local
+            ? 'Pick a departure date and time.'
+            : null
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
@@ -90,6 +102,18 @@ export function TripForm({ onSubmit, isLoading, error }: TripFormProps) {
           }
         />
       </div>
+
+      {routeCheck?.isLoading && (
+        <p role="status" className="-mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" /> Finding truck routes…
+        </p>
+      )}
+      {noRoute && (
+        <Alert variant="destructive" className="-mt-3">
+          <AlertCircle />
+          <AlertDescription>{noRoute}</AlertDescription>
+        </Alert>
+      )}
 
       <DepartureField value={departure} onChange={setDeparture} />
       <LoadField value={loadLb} onChange={setLoadLb} />

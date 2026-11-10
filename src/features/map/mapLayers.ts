@@ -1,10 +1,12 @@
 import type { FeatureCollection } from 'geojson'
 import type { GeoJSONSource, Map as MapLibreMap } from 'maplibre-gl'
-import type { PlanResponse } from '@/api/types'
-import { checkpointsToGeoJSON, riskSegments, routesToGeoJSON } from './routeLayers'
+import type { PlanResponse, RoutePreview } from '@/api/types'
+import { checkpointsToGeoJSON, previewToGeoJSON, riskSegments, routesToGeoJSON } from './routeLayers'
 
-export const SOURCE = { routes: 'routes', risk: 'selected-risk', checkpoints: 'checkpoints' } as const
+export const SOURCE = { routes: 'routes', risk: 'selected-risk', checkpoints: 'checkpoints', preview: 'route-preview' } as const
 export const LAYER = {
+  previewCasing: 'route-preview-casing',
+  preview: 'route-preview-line',
   hit: 'routes-hit',
   other: 'routes-other',
   casing: 'selected-casing',
@@ -20,6 +22,26 @@ export function addRouteLayers(map: MapLibreMap): void {
     if (!map.getSource(id)) map.addSource(id, { type: 'geojson', data: EMPTY })
   }
   const line = { 'line-join': 'round', 'line-cap': 'round' } as const
+
+  // Candidate routes shown before the weather check runs: bold fastest, softer alternatives.
+  map.addLayer({
+    id: LAYER.previewCasing,
+    type: 'line',
+    source: SOURCE.preview,
+    layout: line,
+    paint: { 'line-color': '#ffffff', 'line-width': ['case', ['==', ['get', 'rank'], 0], 11, 9], 'line-opacity': 0.9 },
+  })
+  map.addLayer({
+    id: LAYER.preview,
+    type: 'line',
+    source: SOURCE.preview,
+    layout: line,
+    paint: {
+      'line-color': '#2563eb',
+      'line-width': ['case', ['==', ['get', 'rank'], 0], 7, 5],
+      'line-opacity': ['case', ['==', ['get', 'rank'], 0], 1, 0.55],
+    },
+  })
 
   map.addLayer({
     id: LAYER.hit,
@@ -74,4 +96,9 @@ export function setRouteData(map: MapLibreMap, plan: PlanResponse | undefined, s
   setData(map, SOURCE.routes, plan && selected ? routesToGeoJSON(plan, selected.id) : EMPTY)
   setData(map, SOURCE.risk, selected ? { type: 'FeatureCollection', features: riskSegments(selected) } : EMPTY)
   setData(map, SOURCE.checkpoints, selected ? checkpointsToGeoJSON(selected) : EMPTY)
+}
+
+/** Candidate routes for the chosen places; pass an empty list to clear them. */
+export function setPreviewData(map: MapLibreMap, routes: RoutePreview[]): void {
+  setData(map, SOURCE.preview, routes.length ? previewToGeoJSON(routes) : EMPTY)
 }

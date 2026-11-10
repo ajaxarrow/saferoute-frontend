@@ -1,4 +1,4 @@
-import type { Place, PlanResponse } from './types'
+import type { Place, PlanResponse, RoutePreview } from './types'
 
 /** `npm run dev` + `?mock` in the URL serves canned data, for UI work without API keys. */
 export const MOCK_ENABLED = import.meta.env.DEV && new URLSearchParams(window.location.search).has('mock')
@@ -13,6 +13,14 @@ const CITIES: Place[] = [
 export async function mockPlaces(query: string): Promise<Place[]> {
   await new Promise((resolve) => setTimeout(resolve, 150))
   return CITIES.filter((c) => c.label.toLowerCase().includes(query.toLowerCase()))
+}
+
+export async function mockPreview(): Promise<RoutePreview[]> {
+  await new Promise((resolve) => setTimeout(resolve, 400))
+  const { routes } = (await import('./fixtures/plan.sample.json')).default as unknown as PlanResponse
+  return routes.map(({ id, label, via, summary, geometry }) => ({
+    id, label, via, total_miles: summary.total_miles, duration_s: summary.duration_s, geometry,
+  }))
 }
 
 export async function mockPlan(): Promise<PlanResponse> {

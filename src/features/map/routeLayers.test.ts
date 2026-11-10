@@ -1,6 +1,6 @@
 import sample from '@/api/fixtures/plan.sample.json'
 import type { PlanResponse, PlannedRoute } from '@/api/types'
-import { boundsOf, checkpointsToGeoJSON, riskSegments, routesToGeoJSON } from './routeLayers'
+import { boundsOf, boundsOfPoints, checkpointsToGeoJSON, previewToGeoJSON, riskSegments, routesToGeoJSON } from './routeLayers'
 
 const plan = sample as unknown as PlanResponse
 
@@ -74,5 +74,28 @@ describe('riskSegments', () => {
     expect(merged).toHaveLength(1)
     expect(merged[0].geometry.coordinates[0]).toEqual([0, 0])
     expect(merged[0].geometry.coordinates.at(-1)).toEqual([0, 2])
+  })
+})
+
+describe('previewToGeoJSON', () => {
+  const routes = [
+    { id: 'route-1', label: 'Route 1', via: 'via I-15', total_miles: 10, duration_s: 600, geometry: [[-118, 34], [-117, 35]] as [number, number][] },
+    { id: 'route-2', label: 'Route 2', via: 'via US-50', total_miles: 12, duration_s: 700, geometry: [[-118, 34], [-116, 36]] as [number, number][] },
+  ]
+
+  it('emits one LineString per route and ranks them fastest first', () => {
+    const fc = previewToGeoJSON(routes)
+    expect(fc.features.map((f) => f.properties.rank)).toEqual([0, 1])
+    expect(fc.features[1].geometry.coordinates).toEqual(routes[1].geometry)
+  })
+
+  it('is empty for no routes', () => {
+    expect(previewToGeoJSON([]).features).toEqual([])
+  })
+})
+
+describe('boundsOfPoints', () => {
+  it('covers every point as [[west, south], [east, north]]', () => {
+    expect(boundsOfPoints([[-118, 34], [-105, 39.7], [-110, 30]])).toEqual([[-118, 30], [-105, 39.7]])
   })
 })

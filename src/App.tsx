@@ -3,7 +3,7 @@ import { ArrowLeft } from 'lucide-react'
 import { lazy, Suspense, useCallback, useMemo, useState, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/sonner'
-import type { PlanRequest, PlanResponse } from '@/api/types'
+import type { Place, PlanRequest, PlanResponse } from '@/api/types'
 import type { FitPadding, MapFocus } from '@/features/map/MapView'
 import { ResultsPanel } from '@/features/results/ResultsPanel'
 import { BottomSheet, type SheetSnap } from '@/features/shell/BottomSheet'
@@ -12,6 +12,7 @@ import { PanelHeader } from '@/features/shell/PanelHeader'
 import { TripSummaryBar } from '@/features/shell/TripSummaryBar'
 import { TripForm } from '@/features/trip-form/TripForm'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { useRoutePreview } from '@/hooks/useRoutePreview'
 import { useTheme } from '@/hooks/useTheme'
 import { useTripPlan } from '@/hooks/useTripPlan'
 
@@ -31,6 +32,25 @@ function Planner() {
   const [selectedRouteId, setSelectedRouteId] = useState<string>()
   const [focus, setFocus] = useState<MapFocus | null>(null)
   const [sheet, setSheet] = useState<SheetSnap>('full')
+  const [places, setPlaces] = useState<{ origin: Place | null; destination: Place | null }>({ origin: null, destination: null })
+  const preview = useRoutePreview(places.origin, places.destination)
+
+  // Editing either place makes the old results stale: the map goes back to following the form.
+  const planIsCurrent =
+    Boolean(plan && request) &&
+    request!.origin.lat === places.origin?.lat &&
+    request!.origin.lon === places.origin?.lon &&
+    request!.destination.lat === places.destination?.lat &&
+    request!.destination.lon === places.destination?.lon
+  const mapPlan = planIsCurrent ? plan : undefined
+
+  const changePlaces = useCallback(
+    (origin: Place | null, destination: Place | null) => {
+      setPlaces({ origin, destination })
+      if (!isDesktop && origin && destination) setSheet('half') // reveal the map so the driver sees the routes appear
+    },
+    [isDesktop],
+  )
 
   const submit = useCallback(
     (req: PlanRequest) => {
@@ -75,13 +95,19 @@ function Planner() {
             setView('form')
             setSheet('full')
           }} />}
-      {view === 'form' && plan && !trip.isPending && (
+      {view === 'form' && plan && planIsCurrent && !trip.isPending && (
         <Button variant="ghost" onClick={() => setView('results')} className="-mb-3 h-11 gap-1.5 rounded-xl px-3">
           <ArrowLeft className="size-4" /> Back to results
         </Button>
       )}
       <div hidden={view === 'results' && Boolean(plan) && !trip.isPending}>
-        <TripForm onSubmit={submit} isLoading={trip.isPending} error={trip.error} />
+        <TripForm
+          onSubmit={submit}
+          isLoading={trip.isPending}
+          error={trip.error}
+          onPlacesChange={changePlaces}
+          routeCheck={{ isLoading: preview.isFetching, error: preview.error }}
+        />
       </div>
       {trip.isPending && <LoadingState />}
       {showResults && (
@@ -98,7 +124,10 @@ function Planner() {
   const map = (
     <Suspense fallback={<div className="size-full bg-muted" aria-hidden />}>
       <MapPane
-        plan={plan}
+        plan={mapPlan}
+        origin={places.origin}
+        destination={places.destination}
+        preview={places.origin && places.destination ? preview.data : undefined}
         selectedRouteId={selectedRouteId}
         onSelectRoute={setSelectedRouteId}
         theme={theme}

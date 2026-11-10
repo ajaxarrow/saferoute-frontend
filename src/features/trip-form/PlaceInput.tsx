@@ -146,7 +146,7 @@ export function PlaceInput({ label, icon, value, onChange, placeholder, recent, 
               </CommandGroup>
             )}
             {!typing && recent.length === 0 && !allowCurrentLocation && (
-              <p className="px-3 py-4 text-sm text-muted-foreground">Type a US city or address.</p>
+              <p className="px-3 py-4 text-sm text-muted-foreground">Type a city or address.</p>
             )}
             {typing && (
               <CommandGroup>
@@ -162,7 +162,7 @@ export function PlaceInput({ label, icon, value, onChange, placeholder, recent, 
                   </p>
                 )}
                 {!waiting && search.isSuccess && search.data.length === 0 && (
-                  <CommandEmpty>No US places match “{text.trim()}”.</CommandEmpty>
+                  <CommandEmpty>No places match “{text.trim()}”.</CommandEmpty>
                 )}
                 {!waiting && search.isError && <p className="px-3 py-3 text-sm text-destructive">{search.error.message}</p>}
               </CommandGroup>

@@ -1,5 +1,5 @@
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson'
-import type { PlanResponse, PlannedRoute } from '@/api/types'
+import type { PlanResponse, PlannedRoute, RoutePreview } from '@/api/types'
 import { cumulativeMiles, sliceByMiles, type LonLat } from '@/lib/geo'
 import { RISK, type RiskLevel } from '@/lib/risk'
 
@@ -82,20 +82,40 @@ export function riskSegments(route: PlannedRoute): Feature<LineString, RiskSegme
   }))
 }
 
-export function boundsOf(plan: PlanResponse): [[number, number], [number, number]] {
+export function boundsOfPoints(points: Iterable<LonLat>): [[number, number], [number, number]] {
   let w = Infinity
   let s = Infinity
   let e = -Infinity
   let n = -Infinity
-  for (const r of plan.routes)
-    for (const [lon, lat] of r.geometry) {
-      w = Math.min(w, lon)
-      e = Math.max(e, lon)
-      s = Math.min(s, lat)
-      n = Math.max(n, lat)
-    }
+  for (const [lon, lat] of points) {
+    w = Math.min(w, lon)
+    e = Math.max(e, lon)
+    s = Math.min(s, lat)
+    n = Math.max(n, lat)
+  }
   return [
     [w, s],
     [e, n],
   ]
+}
+
+export function boundsOf(plan: PlanResponse): [[number, number], [number, number]] {
+  return boundsOfPoints(plan.routes.flatMap((r) => r.geometry))
+}
+
+export interface PreviewProps {
+  id: string
+  /** 0 = fastest. */
+  rank: number
+}
+
+export function previewToGeoJSON(routes: RoutePreview[]): FeatureCollection<LineString, PreviewProps> {
+  return {
+    type: 'FeatureCollection',
+    features: routes.map((r, rank) => ({
+      type: 'Feature',
+      properties: { id: r.id, rank },
+      geometry: { type: 'LineString', coordinates: r.geometry },
+    })),
+  }
 }

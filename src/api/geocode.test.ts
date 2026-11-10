@@ -9,13 +9,13 @@ afterEach(() => server.resetHandlers())
 afterAll(() => server.close())
 
 describe('searchPlaces', () => {
-  it('asks MapTiler for US results with the key and the typed text', async () => {
+  it('asks MapTiler for worldwide autocomplete results with the key and the typed text', async () => {
     let url: URL | undefined
     server.use(geocodeHandler({ denv: [DENVER] }, (u) => (url = u)))
     await searchPlaces('denv')
     expect(url?.pathname).toBe('/geocoding/denv.json')
     expect(url?.searchParams.get('key')).toBe('test-key')
-    expect(url?.searchParams.get('country')).toBe('us')
+    expect(url?.searchParams.has('country')).toBe(false)
     expect(url?.searchParams.get('autocomplete')).toBe('true')
   })
 
